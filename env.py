@@ -7,9 +7,13 @@ import numpy as np
 
 class SungkaEnv(Env):
     def __init__(self):
-        self.shape = (2, 7)
-        self.board = np.ones(self.shape)*7
-        self.scores = np.array([0,0])
+        self.shape = (2, 8)
+        # Set to 7
+        self.board = np.ones(np.prod(self.shape), dtype=np.int32)*7
+        # self.board = np.arange(np.prod(self.shape), dtype=np.int32)
+        # Set scores to 0
+        self.board[0] = 0
+        self.board[8] = 0
 
         self.num_states = self.shape[0]*self.shape[1]
         self.num_actions = 4 # up, down, left, right)
@@ -31,7 +35,11 @@ class SungkaEnv(Env):
         """
         Reset environment state
         """
+        # Set to 7
         self.board = np.ones(self.shape)*7
+        # Set scores to 0
+        self.board[0] = 0
+        self.board[8] = 0
 
         self.lastaction=None
         return self.board
@@ -44,28 +52,35 @@ class SungkaEnv(Env):
         return (s, r, d, {"prob" : p})
 
     def render(self):
-        print(self.scores,self.board)
+        print(self.board)
         outfile = sys.stdout
-        output = ' ___________________________________'
+        output = ' ____________________________________________'
         outfile.write(output)
 
-        for row in range(self.board.shape[0]):
-            output = '\n|   |   |   |   |   |   |   |   |   |\n|   '
+        for row in range(self.shape[0]):
+            output = '\n|    |    |    |    |    |    |    |    |    |\n|    '
             outfile.write(output)
 
+            if row == 0:
+                for col in range(1,self.shape[1]):
+                    output = "| %s " % str(self.board[row*self.shape[1] + col]).zfill(2)
+                    outfile.write(output)
+            elif row == 1:
+                for col in range(1,self.shape[1]):
+                    output = "| %s " % str(self.board[(row+1)*self.shape[1] - col]).zfill(2)
+                    outfile.write(output)
 
-            for col in range(self.board.shape[1]):
-                output = "| %i " % self.board[row, col]
-                outfile.write(output)
 
             if row == 0:
-                output = '|   |\n| %i |___|___|___|___|___|___|___| %i |' % (self.scores[0], self.scores[1])
+                output = '|    |\n| %s |____|____|____|____|____|____|____| %s |' % \
+                            (str(self.board[0]).zfill(2), str(self.board[8]).zfill(2))
                 outfile.write(output)
             else:
-                output = '|   |\n|___|___|___|___|___|___|___|___|___|'
+                output = '|    |\n|____|____|____|____|____|____|____|____|____|'
                 outfile.write(output)
+        outfile.write('\n')
 
-                
+
 if __name__ == '__main__':
 
     env = SungkaEnv()
