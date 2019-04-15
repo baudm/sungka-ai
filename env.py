@@ -12,8 +12,10 @@ class SungkaEnv(Env):
         self.board = np.ones(np.prod(self.shape), dtype=np.int32)*7
         # self.board = np.arange(np.prod(self.shape), dtype=np.int32)
         # Set scores to 0
-        self.board[0] = 0
-        self.board[8] = 0
+        self.p1_score_ind = 7
+        self.p2_score_ind = 15
+        self.board[self.p1_score_ind] = 0
+        self.board[self.p2_score_ind] = 0
 
         self.num_states = self.shape[0]*self.shape[1]
         self.num_actions = 4 # up, down, left, right)
@@ -36,10 +38,10 @@ class SungkaEnv(Env):
         Reset environment state
         """
         # Set to 7
-        self.board = np.ones(self.shape)*7
+        self.board = np.ones(np.prod(self.shape), dtype=np.int32)*7
         # Set scores to 0
-        self.board[0] = 0
-        self.board[8] = 0
+        self.board[self.p1_score_ind] = 0
+        self.board[self.p2_score_ind] = 0
 
         self.lastaction=None
         return self.board
@@ -47,9 +49,85 @@ class SungkaEnv(Env):
     def step(self, a):
         """
         Perform specified action
+        follow Sungka rules
         returns (state, reward, is_done, prob)
         """
-        return (s, r, d, {"prob" : p})
+        if a == 7 or a == 15:
+            print('Invalid Move!')
+        if a < 8:
+            player = 1
+        else:
+            player = 2
+
+
+        while True:
+            # if empty
+            if self.board[a] == 0:
+                break
+            stones = self.board[a]
+            self.board[a] = 0 # take all stones
+            stone_batch = 0
+            if stones >= 15:
+                stone_batch = stones//15
+                stones %= 15
+
+            if stone_batch:
+                self.board += stone_batch
+                if player == 1:
+                    self.board[self.p2_score_ind] -= stone_batch
+                elif player == 2:
+                    self.board[self.p1_score_ind] -= stone_batch
+
+            next = a+1
+            last = a+stones
+            ind = np.arange(next,last+1)
+            ind[ind>15] -= 16
+            p1_score = np.argwhere(ind==self.p1_score_ind)
+            p2_score = np.argwhere(ind==self.p2_score_ind)
+            # print(ind)
+            # print(p1_score, p2_score)
+
+            # Don't add on opponent score
+            while p1_score and player == 2:
+                ind = np.delete(ind, p1_score)
+                last = last+1
+                ind = np.append(ind, last)
+                p1_score = np.argwhere(ind==self.p1_score_ind)
+                ind[ind>=16] -= 16
+            while p2_score and player == 1:
+                ind = np.delete(ind, p2_score)
+                last = last+1
+                ind = np.append(ind, last)
+                p2_score = np.argwhere(ind==self.p2_score_ind)
+                ind[ind>=16] -= 16
+            print(ind)
+
+            # Distribute stones
+            self.board[ind] += 1
+            a = ind[-1]
+
+            self.render()
+            if self.board[a] == 1:
+                break
+            if a==self.p1_score_ind or a==self.p2_score_ind:
+                break
+            # Distribute stones
+
+            # if (a+1) + stones <= 15:
+            #     self.board[(a+1): (a+1) + stones] += 1
+            #     a += stones
+            # else:
+            #     self.board[(a+1): 15] += 1
+            #     self.board[0: (a+1) + stones - 15] += 1
+            #     a += stones - 15
+            #
+            # # check if there is still next move
+            # if self.board[a] == 1:
+            #     # print(self.board[a],'break')
+            #     break
+            # elif a == 0  or a == 8:
+            #     break
+        # return (s, r, d, {"prob" : p})
 
     def render(self):
         print(self.board)
@@ -62,18 +140,18 @@ class SungkaEnv(Env):
             outfile.write(output)
 
             if row == 0:
-                for col in range(1,self.shape[1]):
-                    output = "| %s " % str(self.board[row*self.shape[1] + col]).zfill(2)
+                for col in range(self.shape[1]-1):
+                    output = "| %s " % str(self.board[col]).zfill(2)
                     outfile.write(output)
             elif row == 1:
-                for col in range(1,self.shape[1]):
-                    output = "| %s " % str(self.board[(row+1)*self.shape[1] - col]).zfill(2)
+                for col in range(self.shape[1]-1):
+                    output = "| %s " % str(self.board[(self.shape[1]-1)*2-col]).zfill(2)
                     outfile.write(output)
 
 
             if row == 0:
                 output = '|    |\n| %s |____|____|____|____|____|____|____| %s |' % \
-                            (str(self.board[0]).zfill(2), str(self.board[8]).zfill(2))
+                            (str(self.board[15]).zfill(2), str(self.board[7]).zfill(2))
                 outfile.write(output)
             else:
                 output = '|    |\n|____|____|____|____|____|____|____|____|____|'
@@ -85,3 +163,7 @@ if __name__ == '__main__':
 
     env = SungkaEnv()
     env.render()
+    # env.step(0)
+    env.step(1)
+    print('p2')
+    env.step(9)
