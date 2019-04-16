@@ -53,15 +53,20 @@ class SungkaEnv(Env):
         follow Sungka rules
         returns (state, reward, is_done, prob)
         """
-        if a == 7 or a == 15:
+        if a > 13:
             print('Invalid Move!')
-        if a < 8:
+
+        # a = 0 to 6
+        if a < 7:
             player = 1
+        # moves: 7-13 -> a = 8 to 14
         else:
             player = 2
+            a += 1
 
 
         while True:
+            print('player', player)
             # if empty
             if self.board[a] == 0:
                 break
@@ -81,6 +86,11 @@ class SungkaEnv(Env):
 
             next = a+1
             last = a+stones
+            if (player == 1 and next == self.p2_score_ind) or \
+                    (player == 2 and next == self.p1_score_ind):
+                next += 1
+                last += 1
+
             ind = np.arange(next,last+1)
             ind[ind>15] -= 16
             p1_score = np.argwhere(ind==self.p1_score_ind)
@@ -109,6 +119,26 @@ class SungkaEnv(Env):
 
             self.render()
             if self.board[a] == 1:
+                # perform "SUNOG"
+                if (player == 1 and a < 7):
+                    # get yours
+                    self.board[self.p1_score_ind] += self.board[a]
+                    # get opposite side
+                    self.board[self.p1_score_ind] += self.board[abs(14-a)]
+
+                    # remove stones
+                    self.board[a] = 0
+                    self.board[abs(14-a)] = 0
+                elif (player == 2 and a >= 7):
+                    # get yours
+                    self.board[self.p2_score_ind] += self.board[a]
+                    # get opposite side
+                    self.board[self.p2_score_ind] += self.board[abs(14-a)]
+
+                    # remove stones
+                    self.board[a] = 0
+                    self.board[abs(14-a)] = 0
+                self.render()
                 break
             if a==self.p1_score_ind or a==self.p2_score_ind:
                 break
@@ -128,7 +158,24 @@ class SungkaEnv(Env):
             #     break
             # elif a == 0  or a == 8:
             #     break
-        # return (s, r, d, {"prob" : p})
+
+        # create state vector
+        s = self.board[0:6] + self.board[8:14]
+
+        # create reward vector
+        if player == 1:
+            r = self.board[self.p1_score_ind]
+        elif player == 2:
+            r = self.board[self.p2_score_ind]
+
+        # if game is done
+        if np.sum(r) == 98:
+            d = True
+        else:
+            d = False
+
+        p = 1
+        return (s, r, d, {"prob" : p})
 
     def render(self):
         print(self.board)
@@ -164,7 +211,7 @@ if __name__ == '__main__':
 
     env = SungkaEnv()
     env.render()
-    # env.step(0)
-    env.step(1)
+    env.step(5)
+    # env.step(1)
     print('p2')
     env.step(9)
