@@ -9,7 +9,7 @@ class SungkaEnv(Env):
     def __init__(self):
         self.shape = (2, 8)
         # Set to 7
-        self.board = np.ones(np.prod(self.shape), dtype=np.int32)*7
+        self.board = np.ones(np.prod(self.shape), dtype=np.int8)*7
         # self.board = np.arange(np.prod(self.shape), dtype=np.int32)
         # Set scores to 0
         self.p1_score_ind = 7
@@ -17,12 +17,13 @@ class SungkaEnv(Env):
         self.board[self.p1_score_ind] = 0
         self.board[self.p2_score_ind] = 0
 
-        self.num_states = self.shape[0]*self.shape[1]
-        self.num_actions = 4 # up, down, left, right)
-
-        # Declare action space and observation space
-        self.action_space = spaces.Discrete(self.num_actions)
-        self.observation_space = spaces.Discrete(self.num_states)
+        # The action space is the whole board except the holes for the player scores
+        # Player 1's action space is from 0 to 6, while Player 2's is 7 to 13.
+        # Player 2's actions will be shifted from {7-13} to {8-14}.
+        action_shape = (2, 7)
+        self.action_space = spaces.Discrete(np.prod(action_shape))
+        # The observation space is just the board itself
+        self.observation_space = spaces.Box(0, self.board.sum(), action_shape, dtype=np.int8)
 
         self.is_done = np.zeros(self.num_states)
 
