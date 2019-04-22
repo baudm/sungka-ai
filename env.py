@@ -33,6 +33,11 @@ class SungkaEnv(Env):
         self.seed()
         self.lastaction=None
 
+    def action_space(self):
+        return self.action_space
+    def observation_space(self):
+        return self.observation_space
+
     def seed(self, seed=None):
         self.np_random, seed = seeding.np_random(seed)
         return [seed]
