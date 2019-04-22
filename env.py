@@ -10,6 +10,8 @@ class SungkaEnv(Env):
         self.shape = (2, 8)
         # Set to 7
         self.board = np.ones(np.prod(self.shape), dtype=np.int8)*7
+        self.board[0:7] = 0
+        # self.board[5] = 1
         # self.board = np.arange(np.prod(self.shape), dtype=np.int32)
         # Set scores to 0
         self.p1_score_ind = 7
@@ -25,7 +27,8 @@ class SungkaEnv(Env):
         # The observation space is just the board itself
         self.observation_space = spaces.Box(0, self.board.sum(), action_shape, dtype=np.int8)
 
-        self.is_done = np.zeros(self.num_states)
+        # self.is_done = np.zeros(self.num_states)
+        self.is_done = 0
 
         self.seed()
         self.lastaction=None
@@ -69,6 +72,7 @@ class SungkaEnv(Env):
             print('player', player)
             # if empty
             if self.board[a] == 0:
+                ind = [a]
                 break
             stones = self.board[a]
             self.board[a] = 0 # take all stones
@@ -86,6 +90,8 @@ class SungkaEnv(Env):
 
             next = a+1
             last = a+stones
+
+            # if the next house is the enemy's score house, adjust
             if (player == 1 and next == self.p2_score_ind) or \
                     (player == 2 and next == self.p1_score_ind):
                 next += 1
@@ -115,9 +121,12 @@ class SungkaEnv(Env):
 
             # Distribute stones
             self.board[ind] += 1
+            # set new last action as ind[-1]
             a = ind[-1]
 
             self.render()
+
+            # SUNOG mechanism
             if self.board[a] == 1:
                 # perform "SUNOG"
                 if (player == 1 and a < 7):
@@ -140,24 +149,24 @@ class SungkaEnv(Env):
                     self.board[abs(14-a)] = 0
                 self.render()
                 break
+            ### end SUNOG mechanism
+
+            # if last stone goes to the score, stop the loop
+            # current player is allowed another turn
             if a==self.p1_score_ind or a==self.p2_score_ind:
                 break
-            # Distribute stones
 
-            # if (a+1) + stones <= 15:
-            #     self.board[(a+1): (a+1) + stones] += 1
-            #     a += stones
-            # else:
-            #     self.board[(a+1): 15] += 1
-            #     self.board[0: (a+1) + stones - 15] += 1
-            #     a += stones - 15
-            #
-            # # check if there is still next move
-            # if self.board[a] == 1:
-            #     # print(self.board[a],'break')
-            #     break
-            # elif a == 0  or a == 8:
-            #     break
+        # Next player info, change to other player after the move
+        if player == 1:
+            next_player = 2
+        elif player == 2:
+            next_player = 1
+
+        # Except when last stone goes to score, allow player to move again
+        if ind[-1] == self.p1_score_ind:
+            next_player = 1
+        elif ind[-1] == self.p2_score_ind:
+            next_player = 2
 
         # create state vector
         s = self.board[0:6] + self.board[8:14]
@@ -169,13 +178,15 @@ class SungkaEnv(Env):
             r = self.board[self.p2_score_ind]
 
         # if game is done
+        # game is done if all stones are in the scores; board is empty
         if np.sum(r) == 98:
             d = True
         else:
             d = False
 
         p = 1
-        return (s, r, d, {"prob" : p})
+
+        return (s, r, d, {"prob" : p, "next_player" : next_player})
 
     def render(self):
         print(self.board)
@@ -211,7 +222,7 @@ if __name__ == '__main__':
 
     env = SungkaEnv()
     env.render()
-    env.step(5)
+    print(env.step(7))
     # env.step(1)
-    print('p2')
-    env.step(9)
+    # print('p2')
+    # print(env.step(9))
