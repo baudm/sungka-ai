@@ -138,7 +138,7 @@ class SungkaEnv(Env):
                 ind = np.append(ind, last)
                 p2_score = np.argwhere(ind==self.p2_score_ind)
                 ind[ind>=16] -= 16
-            print(ind)
+            # print(ind)
 
             # Distribute stones
             self.board[ind] += 1
@@ -146,7 +146,7 @@ class SungkaEnv(Env):
             a = ind[-1]
             # print('a',a, 'ind',ind[-1])
 
-            self.render()
+            # self.render()
 
             # SUNOG mechanism
             if self.board[a] == 1 and a != self.p1_score_ind and a != self.p2_score_ind:
@@ -169,7 +169,7 @@ class SungkaEnv(Env):
                     # remove stones
                     self.board[a] = 0
                     self.board[abs(14-a)] = 0
-                self.render()
+                # self.render()
                 # print('meow')
                 # print(ind[-1])
                 break
@@ -209,6 +209,7 @@ class SungkaEnv(Env):
         # game is done if all stones are in the scores; board is empty
         if self.board[self.p1_score_ind] + self.board[self.p2_score_ind] == 98:
             d = True
+            # self.render()
         else:
             d = False
 
@@ -217,7 +218,7 @@ class SungkaEnv(Env):
         return (s, r, d, {"prob" : p, "next_player" : next_player})
 
     def render(self):
-        print(self.board)
+        # print(self.board)
         outfile = sys.stdout
         output = ' ____________________________________________'
         outfile.write(output)
@@ -249,8 +250,8 @@ class SungkaEnv(Env):
 if __name__ == '__main__':
 
     env = SungkaEnv()
-    env.render()
-    print(env.step(7))
+    # env.render()
+    # print(env.step(7))
     # env.step(1)
     # print('p2')
     # print(env.step(9))
