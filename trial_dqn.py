@@ -46,11 +46,11 @@ class Net(nn.Module):
     """docstring for Net"""
     def __init__(self, num_states, num_actions):
         super(Net, self).__init__()
-        self.fc1 = nn.Linear(num_states, 50)
+        self.fc1 = nn.Linear(num_states, 128)
         self.fc1.weight.data.normal_(0,0.1)
-        self.fc2 = nn.Linear(50,30)
+        self.fc2 = nn.Linear(128,256)
         self.fc2.weight.data.normal_(0,0.1)
-        self.out = nn.Linear(30,num_actions)
+        self.out = nn.Linear(256,num_actions)
         self.out.weight.data.normal_(0,0.1)
 
     def forward(self,x):
@@ -179,14 +179,17 @@ def main():
             # reward = reward_func(env, next_state)
 
             # Let player 2 play
+            p2_reward = 0
             while info['next_player'] == 2 and not done:
                 action2 = random_policy(info['next_player'])
-                # action = max_policy(info['next_player'], state)
-                next_state, _ , done, info = env.step(action2)
+                # action2 = max_policy(info['next_player'], next_state)
+                # next_state, _ , done, info = env.step(action2)
+                next_state, reward2 , done, info = env.step(action2)
+                p2_reward+=reward2
                 # state = next_state
 
 
-            dqn.store_transition(state, action, reward, next_state)
+            dqn.store_transition(state, action, reward-p2_reward, next_state)
             ep_reward += reward
 
             if dqn.memory_counter >= MEMORY_CAPACITY:
