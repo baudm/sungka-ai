@@ -11,19 +11,21 @@ import argparse
 
 # default hyper-parameters
 BATCH_SIZE = 128
-LR = 0.01
+LR = 0.005
 GAMMA = 0.90
 EPISILO = 0.9
 MEMORY_CAPACITY = 2000
 Q_NETWORK_ITERATION = 100
+NUM_EPISODES = 1000
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--save_path', help='model save location')
-parser.add_argument('--batch_size', default=BATCH_SIZE, help='batch size; default=%i' % BATCH_SIZE)
-parser.add_argument('--lr', default=LR, help='learning rate; default=%i' % LR)
-parser.add_argument('--gamma', default=GAMMA, help='gamma/discount factor; default=%i' % GAMMA)
-parser.add_argument('--eps', default=EPISILO, help='epsilon/exploration coeff; default=%i' % EPISILO)
-parser.add_argument('--mem_cap', default=MEMORY_CAPACITY, help='memory capacity; default=%i' % MEMORY_CAPACITY)
+parser.add_argument('--batch_size', default=BATCH_SIZE, type=int, help='batch size; default=%i' % BATCH_SIZE)
+parser.add_argument('--lr', default=LR, type=float, help='learning rate; default=%i' % LR)
+parser.add_argument('--gamma', default=GAMMA, type=float, help='gamma/discount factor; default=%i' % GAMMA)
+parser.add_argument('--eps', default=EPISILO, type=float, help='epsilon/exploration coeff; default=%i' % EPISILO)
+parser.add_argument('--mem_cap', default=MEMORY_CAPACITY, type=int, help='memory capacity; default=%i' % MEMORY_CAPACITY)
+parser.add_argument('--num_episodes', default=NUM_EPISODES, type=int, help='number of episodes; default=%i' % NUM_EPISODES)
 FLAGS = parser.parse_args()
 save_path = FLAGS.save_path
 BATCH_SIZE = FLAGS.batch_size
@@ -31,6 +33,7 @@ LR = FLAGS.lr
 GAMMA = FLAGS.gamma
 EPISILO = FLAGS.eps
 MEMORY_CAPACITY = FLAGS.mem_cap
+NUM_EPISODES = FLAGS.num_episodes
 
 # env = gym.make("CartPole-v0")
 # env = env.unwrapped
@@ -84,10 +87,15 @@ class DQN():
         self.epsilon_start = epsilon
         self.epsilon = epsilon
 
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.eval_net = self.eval_net.to(self.device)
+        self.target_net = self.target_net.to(self.device)
+
+
     def choose_action(self, state):
-        state = torch.unsqueeze(torch.FloatTensor(state), 0) # get a 1D array
+        state = torch.unsqueeze(torch.FloatTensor(state), 0).to(self.device) # get a 1D array
         if np.random.randn() <= self.epsilon:# greedy policy
-            action_value = self.eval_net.forward(state)
+            action_value = self.eval_net.forward(state).cpu()
             # print("act val",action_value)
             action = torch.max(action_value, 1)[1].data.numpy()
             action = action[0] if ENV_A_SHAPE == 0 else action.reshape(ENV_A_SHAPE)
@@ -114,10 +122,10 @@ class DQN():
         #sample batch from memory
         sample_index = np.random.choice(MEMORY_CAPACITY, BATCH_SIZE)
         batch_memory = self.memory[sample_index, :]
-        batch_state = torch.FloatTensor(batch_memory[:, :self.num_states])
-        batch_action = torch.LongTensor(batch_memory[:, self.num_states:self.num_states+1].astype(int))
-        batch_reward = torch.FloatTensor(batch_memory[:, self.num_states+1:self.num_states+2])
-        batch_next_state = torch.FloatTensor(batch_memory[:,-self.num_states:])
+        batch_state = torch.FloatTensor(batch_memory[:, :self.num_states]).to(self.device)
+        batch_action = torch.LongTensor(batch_memory[:, self.num_states:self.num_states+1].astype(int)).to(self.device)
+        batch_reward = torch.FloatTensor(batch_memory[:, self.num_states+1:self.num_states+2]).to(self.device)
+        batch_next_state = torch.FloatTensor(batch_memory[:,-self.num_states:]).to(self.device)
 
         #q_eval
         # print(self.memory.shape)
@@ -159,7 +167,7 @@ def max_policy(player, board):
 
 def main():
     dqn = DQN(NUM_STATES, NUM_ACTIONS, EPISILO)
-    episodes = 1000
+    episodes = NUM_EPISODES
     print("Collecting Experience....")
     reward_list = []
     reward_list_mean = []
@@ -205,11 +213,8 @@ def main():
         r = copy.copy(ep_reward)
         reward_list.append(r)
         reward_list_mean.append(np.mean(reward_list[-10:]))
-        ax.set_xlim(0,1000)
+        ax.set_xlim(0,episodes)
         #ax.cla()
-        ax.plot(reward_list, 'g-', label='total_loss')
-        ax.plot(reward_list_mean, 'r-', label='ema_loss')
-        plt.pause(0.001)
 
         # env.render()
         print("episode: {} , the episode reward is {}, average of last 10 eps is {}".format(i, ep_reward, reward_list_mean[-1]))
@@ -219,5 +224,12 @@ def main():
             torch.save(dqn, s)
 
 
+            ax.plot(reward_list, 'g-', label='total_loss')
+            ax.plot(reward_list_mean, 'r-', label='ema_loss')
+            plt.pause(0.001)
+
+
 if __name__ == '__main__':
     main()
+    while True:
+        a=1
