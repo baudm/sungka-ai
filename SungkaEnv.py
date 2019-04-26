@@ -76,6 +76,10 @@ class SungkaEnv(Env):
             player = 2
             a += 1
 
+        prev_r = [0,0]
+        prev_r[0] = self.board[self.p1_score_ind]
+        prev_r[1] = self.board[self.p2_score_ind]
+
 
         while True:
             # print(np.sum(self.board))
@@ -195,15 +199,15 @@ class SungkaEnv(Env):
             next_player = 2
 
         # create state vector
-        s = self.board[0:7]
-        s = np.append(s, self.board[8:15])
+        s = self.board[0:self.p1_score_ind]
+        s = np.append(s, self.board[self.p1_score_ind:-2])
         # print("s",s)
 
         # create reward vector
         if player == 1:
-            r = self.board[self.p1_score_ind]
+            r = self.board[self.p1_score_ind] - prev_r[0]
         elif player == 2:
-            r = self.board[self.p2_score_ind]
+            r = self.board[self.p2_score_ind] - prev_r[1]
 
         # if game is done
         # game is done if all stones are in the scores; board is empty
@@ -215,7 +219,7 @@ class SungkaEnv(Env):
 
         p = 1
         # print('d',d )
-        return (s, r, d, {"prob" : p, "next_player" : next_player})
+        return (s, r, d, {"prob" : p, "next_player" : next_player, "p1_score" : self.board[self.p1_score_ind], "p2_score" : self.board[self.p2_score_ind]})
 
     def render(self):
         # print(self.board)
