@@ -6,14 +6,31 @@ import gym
 import matplotlib.pyplot as plt
 import copy
 import math
+import argparse
+# from tqdm import tqdm
 
-# hyper-parameters
+# default hyper-parameters
 BATCH_SIZE = 128
 LR = 0.01
 GAMMA = 0.90
 EPISILO = 0.9
 MEMORY_CAPACITY = 2000
 Q_NETWORK_ITERATION = 100
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--save_path', help='model save location')
+parser.add_argument('--batch_size', default=BATCH_SIZE, help='batch size; default=%i' % BATCH_SIZE)
+parser.add_argument('--lr', default=LR, help='learning rate; default=%i' % LR)
+parser.add_argument('--gamma', default=GAMMA, help='gamma/discount factor; default=%i' % GAMMA)
+parser.add_argument('--eps', default=EPISILO, help='epsilon/exploration coeff; default=%i' % EPISILO)
+parser.add_argument('--mem_cap', default=MEMORY_CAPACITY, help='memory capacity; default=%i' % MEMORY_CAPACITY)
+FLAGS = parser.parse_args()
+save_path = FLAGS.save_path
+BATCH_SIZE = FLAGS.batch_size
+LR = FLAGS.lr
+GAMMA = FLAGS.gamma
+EPISILO = FLAGS.eps
+MEMORY_CAPACITY = FLAGS.mem_cap
 
 # env = gym.make("CartPole-v0")
 # env = env.unwrapped
@@ -103,6 +120,9 @@ class DQN():
         batch_next_state = torch.FloatTensor(batch_memory[:,-self.num_states:])
 
         #q_eval
+        # print(self.memory.shape)
+        # print(batch_state.shape)
+        # print('batch act',batch_action.shape)
         q_eval = self.eval_net(batch_state).gather(1, batch_action)
         q_next = self.target_net(batch_next_state).detach()
         q_target = batch_reward + GAMMA * q_next.max(1)[0].view(BATCH_SIZE, 1)
@@ -116,6 +136,7 @@ class DQN():
         EPS_END = 0.05
         EPS_START = self.epsilon_start
         self.epsilon = EPS_END + (EPS_START - EPS_END) * math.exp(-1. * steps_done / EPS_DECAY)
+        # print(self.epsilon)
 
 def reward_func(env, x, x_dot, theta, theta_dot):
     r1 = (env.x_threshold - abs(x))/env.x_threshold - 0.5
@@ -144,41 +165,41 @@ def main():
     reward_list_mean = []
     plt.ion()
     fig, ax = plt.subplots()
+    # for i in tqdm(range(episodes)):
     for i in range(episodes):
         state = env.reset()
         ep_reward = 0
-        prev_reward = 0
         dqn.ep_decay(episodes, i)
         while True:
 
-            env.render()
+            # env.render()
             action = dqn.choose_action(state)
             next_state, reward , done, info = env.step(action)
             # x, x_dot, theta, theta_dot = next_state
             # reward = reward_func(env, next_state)
 
-            dqn.store_transition(state, action, reward-prev_reward, next_state)
-            ep_reward = reward
-            prev_reward = reward
+            # Let player 2 play
+            while info['next_player'] == 2 and not done:
+                action2 = random_policy(info['next_player'])
+                # action = max_policy(info['next_player'], state)
+                next_state, _ , done, info = env.step(action2)
+                # state = next_state
+
+
+            dqn.store_transition(state, action, reward, next_state)
+            ep_reward += reward
 
             if dqn.memory_counter >= MEMORY_CAPACITY:
                 dqn.learn()
-                if done:
-                    print("episode: {} , the episode reward is {}".format(i, round(ep_reward, 3)))
-
-            state = next_state
-
-            # Let player 2 play
-            while info['next_player'] == 2:
-                action = random_policy(info['next_player'])
-                # action = max_policy(info['next_player'], state)
-                next_state, _ , done, info = env.step(action)
-                state = next_state
+                # if done:
+                #     print("episode: {} , the episode reward is {}".format(i, round(ep_reward, 3)))
 
             if done:
                 break
+
             state = next_state
-        r = copy.copy(reward)
+
+        r = copy.copy(ep_reward)
         reward_list.append(r)
         reward_list_mean.append(np.mean(reward_list[-10:]))
         ax.set_xlim(0,1000)
@@ -186,6 +207,13 @@ def main():
         ax.plot(reward_list, 'g-', label='total_loss')
         ax.plot(reward_list_mean, 'r-', label='ema_loss')
         plt.pause(0.001)
+
+        # env.render()
+        print("episode: {} , the episode reward is {}, average of last 10 eps is {}".format(i, ep_reward, reward_list_mean[-1]))
+        if i % 100 == 0:
+            s = save_path + '-' + str(i).zfill(5)
+            print("saving model at episode %i in save_path=%s" % (i, s))
+            torch.save(dqn, s)
 
 
 if __name__ == '__main__':
