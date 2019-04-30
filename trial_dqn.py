@@ -17,6 +17,7 @@ EPISILO = 0.9
 MEMORY_CAPACITY = 2000
 Q_NETWORK_ITERATION = 100
 NUM_EPISODES = 1000
+NUM_TEST = 100
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--save_path', help='model save location')
@@ -26,6 +27,7 @@ parser.add_argument('--gamma', default=GAMMA, type=float, help='gamma/discount f
 parser.add_argument('--eps', default=EPISILO, type=float, help='epsilon/exploration coeff; default=%i' % EPISILO)
 parser.add_argument('--mem_cap', default=MEMORY_CAPACITY, type=int, help='memory capacity; default=%i' % MEMORY_CAPACITY)
 parser.add_argument('--num_episodes', default=NUM_EPISODES, type=int, help='number of episodes; default=%i' % NUM_EPISODES)
+parser.add_argument('--num_test', default=NUM_TEST, type=int, help='number of test episodes; default=%i' % NUM_TEST)
 FLAGS = parser.parse_args()
 save_path = FLAGS.save_path
 BATCH_SIZE = FLAGS.batch_size
@@ -34,6 +36,7 @@ GAMMA = FLAGS.gamma
 EPISILO = FLAGS.eps
 MEMORY_CAPACITY = FLAGS.mem_cap
 NUM_EPISODES = FLAGS.num_episodes
+NUM_TEST = FLAGS.num_test
 
 # env = gym.make("CartPole-v0")
 # env = env.unwrapped
@@ -83,6 +86,7 @@ class DQN():
         # When we store the memory, we put the state, action, reward and next_state in the memory
         # here reward and action is a number, state is a ndarray
         self.optimizer = torch.optim.Adam(self.eval_net.parameters(), lr=LR)
+        # self.optimizer = torch.optim.SGD(self.eval_net.parameters(), lr=LR)
         self.loss_func = nn.MSELoss()
         self.epsilon_start = epsilon
         self.epsilon = epsilon
@@ -100,6 +104,17 @@ class DQN():
             action = torch.max(action_value, 1)[1].data.numpy()
             action = action[0] if ENV_A_SHAPE == 0 else action.reshape(ENV_A_SHAPE)
         else: # random policy
+            action = np.random.randint(0,self.num_actions)
+            action = action if ENV_A_SHAPE ==0 else action.reshape(ENV_A_SHAPE)
+        return action
+
+    def choose_test_action(self, state, epsilon):
+        state = torch.unsqueeze(torch.FloatTensor(state), 0).to(self.device) # get a 1D array
+        if np.random.randn() <= epsilon:
+            action_value = self.eval_net.forward(state).cpu()
+            action = torch.max(action_value, 1)[1].data.numpy()
+            action = action[0] if ENV_A_SHAPE == 0 else action.reshape(ENV_A_SHAPE)
+        else:
             action = np.random.randint(0,self.num_actions)
             action = action if ENV_A_SHAPE ==0 else action.reshape(ENV_A_SHAPE)
         return action
@@ -163,7 +178,86 @@ def max_policy(player, board):
     if player == 1:
         return np.argmax(board[0:7])
     elif player == 2:
-        return np.argmax(board[7:14]) + 7
+        print(board)
+        print(board[8:15])
+        print(np.argmax(board[8:15]) + 7)
+
+        return np.argmax(board[8:15]) + 7
+
+
+def train_ep(net, policy):
+    state = env.reset()
+    ep_reward = 0
+    ctr = 0
+    while True:
+        # env.render()
+        action = net.choose_action(state)
+        next_state, reward , done, info = env.step(action)
+
+        # Let player 2 play
+        p2_reward = 0
+        while info['next_player'] == 2 and not done:
+            if policy == 'random':
+                action2 = random_policy(info['next_player'])
+            elif policy == 'max':
+                action2 = max_policy(info['next_player'], next_state)
+
+            next_state, reward2 , done, info = env.step(action2)
+            p2_reward+=reward2
+
+
+        net.store_transition(state, action, reward-p2_reward, next_state)
+        ep_reward += reward
+
+        if net.memory_counter >= MEMORY_CAPACITY:
+            net.learn()
+
+        if done:
+            ctr = 0
+            break
+        ctr += 1
+
+        state = next_state
+    if ep_reward > 49:
+        win = 1
+    else:
+        win = 0
+    return ep_reward, win
+
+def test_ep(net, policy, num_test):
+
+    test_reward = []
+    test_win = 0
+
+    for i in range(num_test):
+        state = env.reset()
+        ep_reward = 0
+        while True:
+            # env.render()
+            action = net.choose_test_action(state, 0.05)
+            next_state, reward , done, info = env.step(action)
+
+            p2_reward = 0
+            while info['next_player'] == 2 and not done:
+                if policy == 'random':
+                    action2 = random_policy(info['next_player'])
+                elif policy == 'max':
+                    action2 = max_policy(info['next_player'], next_state)
+                next_state, reward2 , done, info = env.step(action2)
+                p2_reward+=reward2
+                # state = next_state
+
+            ep_reward += reward
+            if done:
+                break
+
+            state = next_state
+
+        test_reward.append(ep_reward)
+        if ep_reward > 49:
+            test_win+=1
+
+    return np.mean(test_reward), test_win/num_test
 
 def main():
     dqn = DQN(NUM_STATES, NUM_ACTIONS, EPISILO)
@@ -171,61 +265,49 @@ def main():
     print("Collecting Experience....")
     reward_list = []
     reward_list_mean = []
+    win_list = []
+    win_list_mean = []
+    test_reward = []
+    test_win = []
     plt.ion()
     fig, ax = plt.subplots()
-    # for i in tqdm(range(episodes)):
+    fig2, ax2 = plt.subplots()
+
     for i in range(episodes):
-        state = env.reset()
-        ep_reward = 0
         dqn.ep_decay(episodes, i)
-        while True:
-
-            # env.render()
-            action = dqn.choose_action(state)
-            next_state, reward , done, info = env.step(action)
-            # x, x_dot, theta, theta_dot = next_state
-            # reward = reward_func(env, next_state)
-
-            # Let player 2 play
-            p2_reward = 0
-            while info['next_player'] == 2 and not done:
-                action2 = random_policy(info['next_player'])
-                # action2 = max_policy(info['next_player'], next_state)
-                # next_state, _ , done, info = env.step(action2)
-                next_state, reward2 , done, info = env.step(action2)
-                p2_reward+=reward2
-                # state = next_state
-
-
-            dqn.store_transition(state, action, reward-p2_reward, next_state)
-            ep_reward += reward
-
-            if dqn.memory_counter >= MEMORY_CAPACITY:
-                dqn.learn()
-                # if done:
-                #     print("episode: {} , the episode reward is {}".format(i, round(ep_reward, 3)))
-
-            if done:
-                break
-
-            state = next_state
+        ep_reward, ep_win = train_ep(dqn, 'random')
 
         r = copy.copy(ep_reward)
         reward_list.append(r)
         reward_list_mean.append(np.mean(reward_list[-10:]))
+        win_list.append(ep_win)
+        win_list_mean.append(np.mean(win_list[-10:]))
         ax.set_xlim(0,episodes)
-        #ax.cla()
+        print("episode: {} , the episode reward is {}, average of last 10 eps is {}, win = {}, win_mean = {}".format(i, ep_reward, reward_list_mean[-1], win_list[-1], win_list_mean[-1]))
+        if i % 100 == 99 or i ==0:
+            t_reward,t_win = test_ep(dqn, 'random', NUM_TEST)
+            # t_reward,t_win = test_ep(dqn, 'max', NUM_TEST)
+            print('test: {}, test_reward: {}, test_win: {}'.format(i, t_reward, t_win))
+            test_reward.append(t_reward)
+            test_win.append(t_win*100)
 
-        # env.render()
-        print("episode: {} , the episode reward is {}, average of last 10 eps is {}".format(i, ep_reward, reward_list_mean[-1]))
-        if i % 100 == 0:
+            # SAVE
             s = save_path + '-' + str(i).zfill(5)
             print("saving model at episode %i in save_path=%s" % (i, s))
             torch.save(dqn, s)
+            np.savez(s+'-test_reward', test_reward)
+            np.savez(s+'-test_win', test_win)
+            np.savez(s+'-train_reward', reward_list)
+            np.savez(s+'-train_reward_mean', reward_list_mean)
 
 
+            # PLOT
             ax.plot(reward_list, 'g-', label='total_loss')
             ax.plot(reward_list_mean, 'r-', label='ema_loss')
+            # ax.plot(np.array(win_list_mean)*100, 'b-', label='win_rate')
+            ax2.plot(test_reward, 'g-', label='test_reward')
+            ax2.plot(test_win, 'r-', label='test_wins')
+
             plt.pause(0.001)
 
 
