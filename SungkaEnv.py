@@ -200,7 +200,7 @@ class SungkaEnv(Env):
 
         # create state vector
         s = self.board[0:self.p1_score_ind]
-        s = np.append(s, self.board[self.p1_score_ind:-2])
+        s = np.append(s, self.board[self.p1_score_ind+1:-1])
         # print("s",s)
 
         # create reward vector
