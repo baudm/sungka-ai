@@ -259,6 +259,12 @@ def test_ep(net, policy, num_test):
     return np.mean(test_reward), test_win/num_test
 
 def main():
+    # Make training reproducible
+    np.random.seed(0)
+    torch.manual_seed(0)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
     dqn = DQN(NUM_STATES, NUM_ACTIONS, EPISILO)
     episodes = NUM_EPISODES
     print("Collecting Experience....")
