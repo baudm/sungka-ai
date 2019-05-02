@@ -13,7 +13,7 @@ import argparse
 BATCH_SIZE = 128
 LR = 0.005
 GAMMA = 0.90
-EPISILO = 0.9
+EPISILON = 0.9
 MEMORY_CAPACITY = 2000
 Q_NETWORK_ITERATION = 100
 NUM_EPISODES = 1000
@@ -25,7 +25,7 @@ parser.add_argument('--save_path', help='model save location')
 parser.add_argument('--batch_size', default=BATCH_SIZE, type=int, help='batch size; default=%i' % BATCH_SIZE)
 parser.add_argument('--lr', default=LR, type=float, help='learning rate; default=%i' % LR)
 parser.add_argument('--gamma', default=GAMMA, type=float, help='gamma/discount factor; default=%i' % GAMMA)
-parser.add_argument('--eps', default=EPISILO, type=float, help='epsilon/exploration coeff; default=%i' % EPISILO)
+parser.add_argument('--eps', default=EPISILON, type=float, help='epsilon/exploration coeff; default=%i' % EPISILON)
 parser.add_argument('--mem_cap', default=MEMORY_CAPACITY, type=int, help='memory capacity; default=%i' % MEMORY_CAPACITY)
 parser.add_argument('--num_episodes', default=NUM_EPISODES, type=int, help='number of episodes; default=%i' % NUM_EPISODES)
 parser.add_argument('--num_test', default=NUM_TEST, type=int, help='number of test episodes; default=%i' % NUM_TEST)
@@ -35,7 +35,7 @@ save_path = FLAGS.save_path
 BATCH_SIZE = FLAGS.batch_size
 LR = FLAGS.lr
 GAMMA = FLAGS.gamma
-EPISILO = FLAGS.eps
+EPISILON = FLAGS.eps
 MEMORY_CAPACITY = FLAGS.mem_cap
 NUM_EPISODES = FLAGS.num_episodes
 NUM_TEST = FLAGS.num_test
@@ -100,7 +100,7 @@ class DQN():
 
     def choose_action(self, state):
         state = torch.unsqueeze(torch.FloatTensor(state), 0).to(self.device) # get a 1D array
-        if np.random.randn() <= self.epsilon:# greedy policy
+        if np.random.rand() > self.epsilon:# greedy policy
             action_value = self.eval_net.forward(state).cpu()
             # print("act val",action_value)
             action = torch.max(action_value, 1)[1].data.numpy()
@@ -112,7 +112,7 @@ class DQN():
 
     def choose_test_action(self, state, epsilon):
         state = torch.unsqueeze(torch.FloatTensor(state), 0).to(self.device) # get a 1D array
-        if np.random.randn() <= epsilon:
+        if np.random.rand() > epsilon:
             action_value = self.eval_net.forward(state).cpu()
             action = torch.max(action_value, 1)[1].data.numpy()
             action = action[0] if ENV_A_SHAPE == 0 else action.reshape(ENV_A_SHAPE)
@@ -291,7 +291,7 @@ def main():
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
-    dqn = DQN(NUM_STATES, NUM_ACTIONS, EPISILO)
+    dqn = DQN(NUM_STATES, NUM_ACTIONS, EPISILON)
     episodes = NUM_EPISODES
     print("Collecting Experience....")
     reward_list = []
