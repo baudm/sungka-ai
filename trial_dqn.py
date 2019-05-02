@@ -18,6 +18,7 @@ MEMORY_CAPACITY = 2000
 Q_NETWORK_ITERATION = 100
 NUM_EPISODES = 1000
 NUM_TEST = 100
+OPP_POLICY = 'random'
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--save_path', help='model save location')
@@ -28,6 +29,7 @@ parser.add_argument('--eps', default=EPISILO, type=float, help='epsilon/explorat
 parser.add_argument('--mem_cap', default=MEMORY_CAPACITY, type=int, help='memory capacity; default=%i' % MEMORY_CAPACITY)
 parser.add_argument('--num_episodes', default=NUM_EPISODES, type=int, help='number of episodes; default=%i' % NUM_EPISODES)
 parser.add_argument('--num_test', default=NUM_TEST, type=int, help='number of test episodes; default=%i' % NUM_TEST)
+parser.add_argument('--opp_policy', default=OPP_POLICY, help='opponent policy during training; default=%s' % OPP_POLICY)
 FLAGS = parser.parse_args()
 save_path = FLAGS.save_path
 BATCH_SIZE = FLAGS.batch_size
@@ -37,7 +39,7 @@ EPISILO = FLAGS.eps
 MEMORY_CAPACITY = FLAGS.mem_cap
 NUM_EPISODES = FLAGS.num_episodes
 NUM_TEST = FLAGS.num_test
-
+OPP_POLICY = FLAGS.opp_policy
 # env = gym.make("CartPole-v0")
 # env = env.unwrapped
 import SungkaEnv
@@ -185,14 +187,19 @@ def max_policy(player, board):
         return np.argmax(board[7:15]) + 7
 
 
-def train_ep(net, policy):
+def train_ep(net, policy, render=False):
     state = env.reset()
     ep_reward = 0
     ctr = 0
+    if render:
+        env.render()
     while True:
         # env.render()
         action = net.choose_action(state)
         next_state, reward , done, info = env.step(action)
+        if render:
+            print('Player 1 moves', action)
+            env.render()
 
         # Let player 2 play
         p2_reward = 0
@@ -201,7 +208,14 @@ def train_ep(net, policy):
                 action2 = random_policy(info['next_player'])
             elif policy == 'max':
                 action2 = max_policy(info['next_player'], next_state)
+            elif policy == 'self':
+                mirror_state = state[7:14]
+                mirror_state = np.append(mirror_state, state[0:7])
+                action2 = net.choose_test_action(mirror_state, 0.05) + 7
             next_state, reward2 , done, info = env.step(action2)
+            if render:
+                print('Player 2 moves', action2)
+                env.render()
             p2_reward+=reward2
 
 
@@ -223,7 +237,7 @@ def train_ep(net, policy):
         win = 0
     return ep_reward, win
 
-def test_ep(net, policy, num_test):
+def test_ep(net, policy, num_test, render=False):
 
     test_reward = []
     test_win = 0
@@ -231,10 +245,15 @@ def test_ep(net, policy, num_test):
     for i in range(num_test):
         state = env.reset()
         ep_reward = 0
+        if render:
+            env.render()
         while True:
             # env.render()
             action = net.choose_test_action(state, 0.05)
             next_state, reward , done, info = env.step(action)
+            if render:
+                print('Player 1 moves', action)
+                env.render()
 
             p2_reward = 0
             while info['next_player'] == 2 and not done:
@@ -242,7 +261,14 @@ def test_ep(net, policy, num_test):
                     action2 = random_policy(info['next_player'])
                 elif policy == 'max':
                     action2 = max_policy(info['next_player'], next_state)
+                elif policy == 'self':
+                    mirror_state = state[7:14]
+                    mirror_state = np.append(mirror_state, state[0:7])
+                    action2 = net.choose_test_action(mirror_state, 0.05) + 7
                 next_state, reward2 , done, info = env.step(action2)
+                if render:
+                    print('Player 2 moves', action2)
+                    env.render()
                 p2_reward+=reward2
                 # state = next_state
 
@@ -276,6 +302,8 @@ def main():
     test_win_rand = []
     test_reward_max = []
     test_win_max = []
+    test_reward_self = []
+    test_win_self = []
     plt.ion()
     fig, ax = plt.subplots()
     fig2, ax2 = plt.subplots()
@@ -283,7 +311,7 @@ def main():
 
     for i in range(episodes):
         dqn.ep_decay(episodes, i)
-        ep_reward, ep_win = train_ep(dqn, 'random')
+        ep_reward, ep_win = train_ep(dqn, OPP_POLICY)
 
         r = copy.copy(ep_reward)
         reward_list.append(r)
@@ -295,13 +323,17 @@ def main():
         if i % 100 == 99 or i ==0:
             t_reward_rand,t_win_rand = test_ep(dqn, 'random', NUM_TEST)
             t_reward_max,t_win_max = test_ep(dqn, 'max', NUM_TEST)
+            t_reward_self,t_win_self = test_ep(dqn, 'max', NUM_TEST)
             # t_reward,t_win = test_ep(dqn, 'max', NUM_TEST)
             print('[random policy] test: {}, test_reward: {}, test_win: {}'.format(i, t_reward_rand, t_win_rand))
             print('[max policy] test: {}, test_reward: {}, test_win: {}'.format(i, t_reward_max, t_win_max))
+            print('[self policy] test: {}, test_reward: {}, test_win: {}'.format(i, t_reward_self, t_win_self))
             test_reward_rand.append(t_reward_rand)
             test_win_rand.append(t_win_rand*100)
             test_reward_max.append(t_reward_max)
             test_win_max.append(t_win_max*100)
+            test_reward_self.append(t_reward_self)
+            test_win_self.append(t_win_self*100)
 
             # SAVE
             s = save_path + '-' + str(i).zfill(5)
@@ -311,6 +343,8 @@ def main():
             np.savez(s+'-test_win_rand', test_win_rand)
             np.savez(s+'-test_reward_max', test_reward_max)
             np.savez(s+'-test_win_max', test_win_max)
+            np.savez(s+'-test_reward_max', test_reward_self)
+            np.savez(s+'-test_win_max', test_win_self)
             np.savez(s+'-train_reward', reward_list)
             np.savez(s+'-train_reward_mean', reward_list_mean)
 
@@ -328,6 +362,7 @@ def main():
             ax2.set_ylabel('Reward')
             ax2.plot(test_reward_rand, 'r-', label='vs random policy')
             ax2.plot(test_reward_max, 'g-', label='vs max policy')
+            ax2.plot(test_reward_self, 'b-', label='vs self policy')
 
 
             fig3.suptitle('[Test] Win rate of agent')
@@ -335,6 +370,7 @@ def main():
             ax3.set_ylabel('Win rate (%)')
             ax3.plot(test_win_rand, 'r-', label='vs random policy')
             ax3.plot(test_win_max, 'g-', label='vs max policy')
+            ax3.plot(test_win_self, 'b-', label='vs self policy')
             plt.pause(0.001)
 
             if i == 0:
@@ -342,6 +378,12 @@ def main():
                 fig2.legend()
                 fig3.legend()
             # plt.show()
+    print('vs. random policy')
+    _,_ = test_ep(dqn, 'random', 1, render=True)
+    print('vs. max policy')
+    _,_ = test_ep(dqn, 'max', 1, render=True)
+    print('vs. self')
+    _,_ = test_ep(dqn, 'self', 1, render=True)
 
 if __name__ == '__main__':
     main()
