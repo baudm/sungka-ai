@@ -11,7 +11,7 @@ import argparse
 
 # default hyper-parameters
 BATCH_SIZE = 128
-LR = 0.005
+LR = 1e-5
 GAMMA = 0.90
 EPISILON = 0.9
 MEMORY_CAPACITY = 2000
