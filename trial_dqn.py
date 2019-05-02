@@ -178,11 +178,11 @@ def max_policy(player, board):
     if player == 1:
         return np.argmax(board[0:7])
     elif player == 2:
-        print(board)
-        print(board[8:15])
-        print(np.argmax(board[8:15]) + 7)
+        # print(board)
+        # print(board[8:15])
+        # print(np.argmax(board[7:15]) + 7)
 
-        return np.argmax(board[8:15]) + 7
+        return np.argmax(board[7:15]) + 7
 
 
 def train_ep(net, policy):
@@ -201,7 +201,6 @@ def train_ep(net, policy):
                 action2 = random_policy(info['next_player'])
             elif policy == 'max':
                 action2 = max_policy(info['next_player'], next_state)
-
             next_state, reward2 , done, info = env.step(action2)
             p2_reward+=reward2
 
@@ -267,11 +266,14 @@ def main():
     reward_list_mean = []
     win_list = []
     win_list_mean = []
-    test_reward = []
-    test_win = []
+    test_reward_rand = []
+    test_win_rand = []
+    test_reward_max = []
+    test_win_max = []
     plt.ion()
     fig, ax = plt.subplots()
     fig2, ax2 = plt.subplots()
+    fig3, ax3 = plt.subplots()
 
     for i in range(episodes):
         dqn.ep_decay(episodes, i)
@@ -285,31 +287,55 @@ def main():
         ax.set_xlim(0,episodes)
         print("episode: {} , the episode reward is {}, average of last 10 eps is {}, win = {}, win_mean = {}".format(i, ep_reward, reward_list_mean[-1], win_list[-1], win_list_mean[-1]))
         if i % 100 == 99 or i ==0:
-            t_reward,t_win = test_ep(dqn, 'random', NUM_TEST)
+            t_reward_rand,t_win_rand = test_ep(dqn, 'random', NUM_TEST)
+            t_reward_max,t_win_max = test_ep(dqn, 'max', NUM_TEST)
             # t_reward,t_win = test_ep(dqn, 'max', NUM_TEST)
-            print('test: {}, test_reward: {}, test_win: {}'.format(i, t_reward, t_win))
-            test_reward.append(t_reward)
-            test_win.append(t_win*100)
+            print('[random policy] test: {}, test_reward: {}, test_win: {}'.format(i, t_reward_rand, t_win_rand))
+            print('[max policy] test: {}, test_reward: {}, test_win: {}'.format(i, t_reward_max, t_win_max))
+            test_reward_rand.append(t_reward_rand)
+            test_win_rand.append(t_win_rand*100)
+            test_reward_max.append(t_reward_max)
+            test_win_max.append(t_win_max*100)
 
             # SAVE
             s = save_path + '-' + str(i).zfill(5)
             print("saving model at episode %i in save_path=%s" % (i, s))
             torch.save(dqn, s)
-            np.savez(s+'-test_reward', test_reward)
-            np.savez(s+'-test_win', test_win)
+            np.savez(s+'-test_reward_rand', test_reward_rand)
+            np.savez(s+'-test_win_rand', test_win_rand)
+            np.savez(s+'-test_reward_max', test_reward_max)
+            np.savez(s+'-test_win_max', test_win_max)
             np.savez(s+'-train_reward', reward_list)
             np.savez(s+'-train_reward_mean', reward_list_mean)
 
 
             # PLOT
+            fig.suptitle('[Train] Reward over Number of Episodes')
+            ax.set_xlabel('Episodes')
+            ax.set_ylabel('Reward')
             ax.plot(reward_list, 'g-', label='total_loss')
             ax.plot(reward_list_mean, 'r-', label='ema_loss')
             # ax.plot(np.array(win_list_mean)*100, 'b-', label='win_rate')
-            ax2.plot(test_reward, 'g-', label='test_reward')
-            ax2.plot(test_win, 'r-', label='test_wins')
 
+            fig2.suptitle('[Test] Reward over Number of Episodes')
+            ax2.set_xlabel('Episodes')
+            ax2.set_ylabel('Reward')
+            ax2.plot(test_reward_rand, 'r-', label='vs random policy')
+            ax2.plot(test_reward_max, 'g-', label='vs max policy')
+
+
+            fig3.suptitle('[Test] Win rate of agent')
+            ax3.set_xlabel('Episodes')
+            ax3.set_ylabel('Win rate (%)')
+            ax3.plot(test_win_rand, 'r-', label='vs random policy')
+            ax3.plot(test_win_max, 'g-', label='vs max policy')
             plt.pause(0.001)
 
+            if i == 0:
+                fig.legend()
+                fig2.legend()
+                fig3.legend()
+            # plt.show()
 
 if __name__ == '__main__':
     main()
