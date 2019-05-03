@@ -529,7 +529,7 @@ def main_p2():
             ax3.plot(test_win_rand, 'r-', label='vs random policy')
             ax3.plot(test_win_max, 'g-', label='vs max policy')
             ax3.plot(test_win_self, 'b-', label='vs self policy')
-            ax2.plot(test_win_exact, 'y-', label='vs exact policy')
+            ax3.plot(test_win_exact, 'y-', label='vs exact policy')
             plt.pause(0.001)
 
             if i == 0:
@@ -642,7 +642,7 @@ def main():
             ax3.plot(test_win_rand, 'r-', label='vs random policy')
             ax3.plot(test_win_max, 'g-', label='vs max policy')
             ax3.plot(test_win_self, 'b-', label='vs self policy')
-            ax2.plot(test_win_exact, 'y-', label='vs exact policy')
+            ax3.plot(test_win_exact, 'y-', label='vs exact policy')
             plt.pause(0.001)
 
             if i == 0:
