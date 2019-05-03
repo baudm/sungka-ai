@@ -489,6 +489,8 @@ def main_p2():
             test_win_max.append(t_win_max*100)
             test_reward_self.append(t_reward_self)
             test_win_self.append(t_win_self*100)
+            test_reward_exact.append(t_reward_exact)
+            test_win_exact.append(t_win_exact*100)
 
             # SAVE
             s = save_path + '-' + str(i).zfill(5)
@@ -602,6 +604,8 @@ def main():
             test_win_max.append(t_win_max*100)
             test_reward_self.append(t_reward_self)
             test_win_self.append(t_win_self*100)
+            test_reward_exact.append(t_reward_exact)
+            test_win_exact.append(t_win_exact*100)
 
             # SAVE
             s = save_path + '-' + str(i).zfill(5)
