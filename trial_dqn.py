@@ -502,11 +502,11 @@ def main_p2():
                 fig3.legend()
             # plt.show()
     print('vs. random policy')
-    _,_ = test_ep(dqn, 'random', 1, render=True)
+    _,_ = test_ep_p2(dqn, 'random', 1, render=True)
     print('vs. max policy')
-    _,_ = test_ep(dqn, 'max', 1, render=True)
+    _,_ = test_ep_p2(dqn, 'max', 1, render=True)
     print('vs. self')
-    _,_ = test_ep(dqn, 'self', 1, render=True)
+    _,_ = test_ep_p2(dqn, 'self', 1, render=True)
 
 def main():
     # Make training reproducible
