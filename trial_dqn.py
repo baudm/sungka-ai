@@ -186,6 +186,26 @@ def max_policy(player, board):
 
         return np.argmax(board[7:15]) + 7
 
+def exact_policy(player, board):
+    if player == 2: # if player 2, mirror the board first
+        mirror_board = board[7:14]
+        mirror_board = np.append(mirror_board, board[0:7])
+        board = mirror_board
+
+    # perform exact policy
+    for i in reversed(range(7)):
+        if board[i] == 7 - (i):
+            action = i
+            break
+        else:
+            action = np.argmax(board[0:7])
+
+
+    if player == 1:
+        return action
+    elif player == 2:
+        return action + 7
+
 
 def train_ep(net, policy, render=False):
     state = env.reset()
@@ -208,6 +228,8 @@ def train_ep(net, policy, render=False):
                 action2 = random_policy(info['next_player'])
             elif policy == 'max':
                 action2 = max_policy(info['next_player'], next_state)
+            elif policy == 'exact':
+                action2 = exact_policy(info['next_player'], next_state)
             elif policy == 'self':
                 mirror_state = state[7:14]
                 mirror_state = np.append(mirror_state, state[0:7])
@@ -261,6 +283,8 @@ def test_ep(net, policy, num_test, eps=0.05, render=False):
                     action2 = random_policy(info['next_player'])
                 elif policy == 'max':
                     action2 = max_policy(info['next_player'], next_state)
+                elif policy == 'exact':
+                    action2 = exact_policy(info['next_player'], next_state)
                 elif policy == 'self':
                     mirror_state = state[7:14]
                     mirror_state = np.append(mirror_state, state[0:7])
@@ -312,6 +336,8 @@ def train_ep_p2(net, policy, render=False):
                 action2 = random_policy(info['next_player'])
             elif policy == 'max':
                 action2 = max_policy(info['next_player'], next_state)
+            elif policy == 'exact':
+                action2 = exact_policy(info['next_player'], next_state)
             elif policy == 'self':
                 mirror_state = state[7:14]
                 mirror_state = np.append(mirror_state, state[0:7])
@@ -378,6 +404,8 @@ def test_ep_p2(net, policy, num_test, eps=0.05, render=False):
                     action2 = random_policy(info['next_player'])
                 elif policy == 'max':
                     action2 = max_policy(info['next_player'], next_state)
+                elif policy == 'exact':
+                    action2 = exact_policy(info['next_player'], next_state)
                 elif policy == 'self':
                     mirror_state = state[7:14]
                     mirror_state = np.append(mirror_state, state[0:7])
@@ -423,6 +451,8 @@ def main_p2():
     test_win_max = []
     test_reward_self = []
     test_win_self = []
+    test_reward_exact = []
+    test_win_exact = []
     plt.ion()
     fig, ax = plt.subplots()
     fig2, ax2 = plt.subplots()
@@ -446,11 +476,13 @@ def main_p2():
                 test_epsilon = 1e-2
             t_reward_rand,t_win_rand = test_ep_p2(dqn, 'random', NUM_TEST, test_epsilon)
             t_reward_max,t_win_max = test_ep_p2(dqn, 'max', NUM_TEST, test_epsilon)
-            t_reward_self,t_win_self = test_ep_p2(dqn, 'max', NUM_TEST, test_epsilon)
+            t_reward_self,t_win_self = test_ep_p2(dqn, 'self', NUM_TEST, test_epsilon)
+            t_reward_exact,t_win_exact = test_ep_p2(dqn, 'exact', NUM_TEST, test_epsilon)
             # t_reward,t_win = test_ep(dqn, 'max', NUM_TEST)
             print('[random policy] test: {}, test_reward: {}, test_win: {}'.format(i, t_reward_rand, t_win_rand))
             print('[max policy] test: {}, test_reward: {}, test_win: {}'.format(i, t_reward_max, t_win_max))
             print('[self policy] test: {}, test_reward: {}, test_win: {}'.format(i, t_reward_self, t_win_self))
+            print('[exact policy] test: {}, test_reward: {}, test_win: {}'.format(i, t_reward_exact, t_win_exact))
             test_reward_rand.append(t_reward_rand)
             test_win_rand.append(t_win_rand*100)
             test_reward_max.append(t_reward_max)
@@ -468,6 +500,8 @@ def main_p2():
             np.savez(s+'-test_win_max', test_win_max)
             np.savez(s+'-test_reward_max', test_reward_self)
             np.savez(s+'-test_win_max', test_win_self)
+            np.savez(s+'-test_reward_max', test_reward_exact)
+            np.savez(s+'-test_win_max', test_win_exact)
             np.savez(s+'-train_reward', reward_list)
             np.savez(s+'-train_reward_mean', reward_list_mean)
 
@@ -486,6 +520,7 @@ def main_p2():
             ax2.plot(test_reward_rand, 'r-', label='vs random policy')
             ax2.plot(test_reward_max, 'g-', label='vs max policy')
             ax2.plot(test_reward_self, 'b-', label='vs self policy')
+            ax2.plot(test_reward_exact, 'y-', label='vs exact policy')
 
 
             fig3.suptitle('[Test] Win rate of agent')
@@ -494,6 +529,7 @@ def main_p2():
             ax3.plot(test_win_rand, 'r-', label='vs random policy')
             ax3.plot(test_win_max, 'g-', label='vs max policy')
             ax3.plot(test_win_self, 'b-', label='vs self policy')
+            ax2.plot(test_win_exact, 'y-', label='vs exact policy')
             plt.pause(0.001)
 
             if i == 0:
@@ -528,6 +564,8 @@ def main():
     test_win_max = []
     test_reward_self = []
     test_win_self = []
+    test_reward_exact = []
+    test_win_exact = []
     plt.ion()
     fig, ax = plt.subplots()
     fig2, ax2 = plt.subplots()
@@ -551,11 +589,13 @@ def main():
                 test_epsilon = 1e-2
             t_reward_rand,t_win_rand = test_ep(dqn, 'random', NUM_TEST, test_epsilon)
             t_reward_max,t_win_max = test_ep(dqn, 'max', NUM_TEST, test_epsilon)
-            t_reward_self,t_win_self = test_ep(dqn, 'max', NUM_TEST, test_epsilon)
+            t_reward_self,t_win_self = test_ep(dqn, 'self', NUM_TEST, test_epsilon)
+            t_reward_exact,t_win_exact = test_ep(dqn, 'exact', NUM_TEST, test_epsilon)
             # t_reward,t_win = test_ep(dqn, 'max', NUM_TEST)
             print('[random policy] test: {}, test_reward: {}, test_win: {}'.format(i, t_reward_rand, t_win_rand))
             print('[max policy] test: {}, test_reward: {}, test_win: {}'.format(i, t_reward_max, t_win_max))
             print('[self policy] test: {}, test_reward: {}, test_win: {}'.format(i, t_reward_self, t_win_self))
+            print('[exact policy] test: {}, test_reward: {}, test_win: {}'.format(i, t_reward_exact, t_win_exact))
             test_reward_rand.append(t_reward_rand)
             test_win_rand.append(t_win_rand*100)
             test_reward_max.append(t_reward_max)
@@ -573,6 +613,8 @@ def main():
             np.savez(s+'-test_win_max', test_win_max)
             np.savez(s+'-test_reward_max', test_reward_self)
             np.savez(s+'-test_win_max', test_win_self)
+            np.savez(s+'-test_reward_max', test_reward_exact)
+            np.savez(s+'-test_win_max', test_win_exact)
             np.savez(s+'-train_reward', reward_list)
             np.savez(s+'-train_reward_mean', reward_list_mean)
 
@@ -591,6 +633,7 @@ def main():
             ax2.plot(test_reward_rand, 'r-', label='vs random policy')
             ax2.plot(test_reward_max, 'g-', label='vs max policy')
             ax2.plot(test_reward_self, 'b-', label='vs self policy')
+            ax2.plot(test_reward_exact, 'y-', label='vs exact policy')
 
 
             fig3.suptitle('[Test] Win rate of agent')
@@ -599,6 +642,7 @@ def main():
             ax3.plot(test_win_rand, 'r-', label='vs random policy')
             ax3.plot(test_win_max, 'g-', label='vs max policy')
             ax3.plot(test_win_self, 'b-', label='vs self policy')
+            ax2.plot(test_win_exact, 'y-', label='vs exact policy')
             plt.pause(0.001)
 
             if i == 0:
