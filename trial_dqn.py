@@ -160,7 +160,7 @@ class DQN():
     def ep_decay(self, EPS_DECAY, steps_done):
         EPS_END = 0.05
         EPS_START = self.epsilon_start
-        self.epsilon = EPS_END + (EPS_START - EPS_END) * math.exp(-1. * steps_done / EPS_DECAY)
+        self.epsilon = EPS_END + (EPS_START - EPS_END) * (1 - steps_done / EPS_DECAY)
         # print(self.epsilon)
 
 def reward_func(env, x, x_dot, theta, theta_dot):
