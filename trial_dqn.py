@@ -443,7 +443,7 @@ def main_p2():
             if i < episodes - 50:
                 test_epsilon = 0.05
             else:
-                test_epsilon = 1e-5
+                test_epsilon = 1e-2
             t_reward_rand,t_win_rand = test_ep_p2(dqn, 'random', NUM_TEST, test_epsilon)
             t_reward_max,t_win_max = test_ep_p2(dqn, 'max', NUM_TEST, test_epsilon)
             t_reward_self,t_win_self = test_ep_p2(dqn, 'max', NUM_TEST, test_epsilon)
@@ -502,11 +502,11 @@ def main_p2():
                 fig3.legend()
             # plt.show()
     print('vs. random policy')
-    _,_ = test_ep_p2(dqn, 'random', 1, render=True)
+    _,_ = test_ep_p2(dqn, 'random', 1, 1e-2, render=True)
     print('vs. max policy')
-    _,_ = test_ep_p2(dqn, 'max', 1, render=True)
+    _,_ = test_ep_p2(dqn, 'max', 1, 1e-2, render=True)
     print('vs. self')
-    _,_ = test_ep_p2(dqn, 'self', 1, render=True)
+    _,_ = test_ep_p2(dqn, 'self', 1, 1e-2, render=True)
 
 def main():
     # Make training reproducible
@@ -548,7 +548,7 @@ def main():
             if i < episodes - 50:
                 test_epsilon = 0.05
             else:
-                test_epsilon = 1e-5
+                test_epsilon = 1e-2
             t_reward_rand,t_win_rand = test_ep(dqn, 'random', NUM_TEST, test_epsilon)
             t_reward_max,t_win_max = test_ep(dqn, 'max', NUM_TEST, test_epsilon)
             t_reward_self,t_win_self = test_ep(dqn, 'max', NUM_TEST, test_epsilon)
@@ -607,11 +607,11 @@ def main():
                 fig3.legend()
             # plt.show()
     print('vs. random policy')
-    _,_ = test_ep(dqn, 'random', 1, render=True)
+    _,_ = test_ep(dqn, 'random', 1, 1e-2, render=True)
     print('vs. max policy')
-    _,_ = test_ep(dqn, 'max', 1, render=True)
+    _,_ = test_ep(dqn, 'max', 1, 1e-2, render=True)
     print('vs. self')
-    _,_ = test_ep(dqn, 'self', 1, render=True)
+    _,_ = test_ep(dqn, 'self', 1, 1e-2, render=True)
 
 if __name__ == '__main__':
     main()
