@@ -544,13 +544,14 @@ def main():
         win_list_mean.append(np.mean(win_list[-10:]))
         ax.set_xlim(0,episodes)
         print("episode: {} , the episode reward is {}, average of last 10 eps is {}, win = {}, win_mean = {}".format(i, ep_reward, reward_list_mean[-1], win_list[-1], win_list_mean[-1]))
-        if i % 100 == 99 or i ==0:    if i < episodes - 50:
+        if i % 100 == 99 or i ==0:
+            if i < episodes - 50:
                 test_epsilon = 0.05
             else:
                 test_epsilon = 1e-5
             t_reward_rand,t_win_rand = test_ep(dqn, 'random', NUM_TEST, test_epsilon)
             t_reward_max,t_win_max = test_ep(dqn, 'max', NUM_TEST, test_epsilon)
-            t_reward_self,t_win_self = test_ep(dqn, 'max', NUM_TEST, test_epsilon
+            t_reward_self,t_win_self = test_ep(dqn, 'max', NUM_TEST, test_epsilon)
             # t_reward,t_win = test_ep(dqn, 'max', NUM_TEST)
             print('[random policy] test: {}, test_reward: {}, test_win: {}'.format(i, t_reward_rand, t_win_rand))
             print('[max policy] test: {}, test_reward: {}, test_win: {}'.format(i, t_reward_max, t_win_max))
