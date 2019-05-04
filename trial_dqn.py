@@ -2,12 +2,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-import gym
 import matplotlib.pyplot as plt
 import copy
-import math
 import argparse
-# from tqdm import tqdm
 
 # default hyper-parameters
 BATCH_SIZE = 128
@@ -119,27 +116,23 @@ class DQN():
 
 
     def learn(self):
-
         #update the parameters
-        if self.learn_step_counter % Q_NETWORK_ITERATION ==0:
+        if self.learn_step_counter % Q_NETWORK_ITERATION == 0:
             self.target_net.load_state_dict(self.eval_net.state_dict())
-        self.learn_step_counter+=1
+        self.learn_step_counter += 1
 
         #sample batch from memory
         sample_index = np.random.choice(MEMORY_CAPACITY, BATCH_SIZE)
         batch_memory = self.memory[sample_index, :]
-        batch_state = torch.FloatTensor(batch_memory[:, :self.num_states]).to(self.device)
-        batch_action = torch.LongTensor(batch_memory[:, self.num_states:self.num_states+1].astype(int)).to(self.device)
-        batch_reward = torch.FloatTensor(batch_memory[:, self.num_states+1:self.num_states+2]).to(self.device)
-        batch_next_state = torch.FloatTensor(batch_memory[:,-self.num_states:]).to(self.device)
+        batch_state = torch.as_tensor(batch_memory[:, :self.num_states], dtype=torch.float, device=self.device)
+        batch_action = torch.as_tensor(batch_memory[:, self.num_states:self.num_states+1], dtype=torch.long, device=self.device)
+        batch_reward = torch.as_tensor(batch_memory[:, self.num_states+1:self.num_states+2], dtype=torch.float, device=self.device)
+        batch_next_state = torch.as_tensor(batch_memory[:, -self.num_states:], dtype=torch.float, device=self.device)
 
-        #q_eval
-        # print(self.memory.shape)
-        # print(batch_state.shape)
-        # print('batch act',batch_action.shape)
         q_eval = self.eval_net(batch_state).gather(1, batch_action)
-        q_next = self.target_net(batch_next_state).detach()
-        q_target = batch_reward + GAMMA * q_next.max(1)[0].view(BATCH_SIZE, 1)
+        with torch.no_grad():
+            q_next = self.target_net(batch_next_state)
+        q_target = batch_reward + GAMMA * q_next.max(1, keepdim=True)[0]
         loss = self.loss_func(q_eval, q_target)
 
         self.optimizer.zero_grad()
