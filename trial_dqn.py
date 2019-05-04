@@ -12,7 +12,7 @@ import argparse
 # default hyper-parameters
 BATCH_SIZE = 128
 LR = 1e-5
-GAMMA = 0.90
+GAMMA = 0.9
 EPISILON = 0.9
 MEMORY_CAPACITY = 2000
 Q_NETWORK_ITERATION = 100
@@ -97,30 +97,19 @@ class DQN():
         self.eval_net = self.eval_net.to(self.device)
         self.target_net = self.target_net.to(self.device)
 
-
-    def choose_action(self, state):
-        state = torch.unsqueeze(torch.FloatTensor(state), 0).to(self.device) # get a 1D array
-        if np.random.rand() > self.epsilon:# greedy policy
-            action_value = self.eval_net.forward(state).cpu()
-            # print("act val",action_value)
-            action = torch.max(action_value, 1)[1].data.numpy()
-            action = action[0] if ENV_A_SHAPE == 0 else action.reshape(ENV_A_SHAPE)
-        else: # random policy
-            action = np.random.randint(0,self.num_actions)
-            action = action if ENV_A_SHAPE ==0 else action.reshape(ENV_A_SHAPE)
-        return action
-
-    def choose_test_action(self, state, epsilon):
-        state = torch.unsqueeze(torch.FloatTensor(state), 0).to(self.device) # get a 1D array
+    def choose_action(self, state, epsilon=None):
+        state = torch.as_tensor(state, dtype=torch.float, device=self.device)
+        if epsilon is None:
+            epsilon = self.epsilon
         if np.random.rand() > epsilon:
-            action_value = self.eval_net.forward(state).cpu()
-            action = torch.max(action_value, 1)[1].data.numpy()
-            action = action[0] if ENV_A_SHAPE == 0 else action.reshape(ENV_A_SHAPE)
+            # Exploit
+            with torch.no_grad():
+                action_value = self.eval_net(state).cpu().numpy()
+            action = action_value.argmax()
         else:
-            action = np.random.randint(0,self.num_actions)
-            action = action if ENV_A_SHAPE ==0 else action.reshape(ENV_A_SHAPE)
-        return action
-
+            # Explore
+            action = np.random.randint(0, self.num_actions)
+        return action if ENV_A_SHAPE == 0 else action.reshape(ENV_A_SHAPE)
 
     def store_transition(self, state, action, reward, next_state):
         transition = np.hstack((state, [action, reward], next_state))
@@ -233,7 +222,7 @@ def train_ep(net, policy, render=False):
             elif policy == 'self':
                 mirror_state = state[7:14]
                 mirror_state = np.append(mirror_state, state[0:7])
-                action2 = net.choose_test_action(mirror_state, 0.05) + 7
+                action2 = net.choose_action(mirror_state, 0.05) + 7
             next_state, reward2 , done, info = env.step(action2)
             if render:
                 print('Player 2 moves', action2)
@@ -271,7 +260,7 @@ def test_ep(net, policy, num_test, eps=0.05, render=False):
             env.render()
         while True:
             # env.render()
-            action = net.choose_test_action(state, eps)
+            action = net.choose_action(state, eps)
             next_state, reward , done, info = env.step(action)
             if render:
                 print('Player 1 moves', action)
@@ -288,7 +277,7 @@ def test_ep(net, policy, num_test, eps=0.05, render=False):
                 elif policy == 'self':
                     mirror_state = state[7:14]
                     mirror_state = np.append(mirror_state, state[0:7])
-                    action2 = net.choose_test_action(mirror_state, eps) + 7
+                    action2 = net.choose_action(mirror_state, eps) + 7
                 next_state, reward2 , done, info = env.step(action2)
                 if render:
                     print('Player 2 moves', action2)
@@ -341,7 +330,7 @@ def train_ep_p2(net, policy, render=False):
             elif policy == 'self':
                 mirror_state = state[7:14]
                 mirror_state = np.append(mirror_state, state[0:7])
-                action2 = net.choose_test_action(mirror_state, 0.05) + 7
+                action2 = net.choose_action(mirror_state, 0.05) + 7
             next_state, reward2 , done, info = env.step(action2)
             if render:
                 print('Player 2 moves', action2)
@@ -386,7 +375,7 @@ def test_ep_p2(net, policy, num_test, eps=0.05, render=False):
         while True:
             # env.render()
             if ctr > 0: # skip player1's first turn so that he goes second
-                action = net.choose_test_action(state, eps)
+                action = net.choose_action(state, eps)
                 next_state, reward , done, info = env.step(action)
                 if render:
                     print('Player 1 moves', action)
@@ -409,7 +398,7 @@ def test_ep_p2(net, policy, num_test, eps=0.05, render=False):
                 elif policy == 'self':
                     mirror_state = state[7:14]
                     mirror_state = np.append(mirror_state, state[0:7])
-                    action2 = net.choose_test_action(mirror_state, eps) + 7
+                    action2 = net.choose_action(mirror_state, eps) + 7
                 next_state, reward2 , done, info = env.step(action2)
                 if render:
                     print('Player 2 moves', action2)
