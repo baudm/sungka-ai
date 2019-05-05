@@ -502,10 +502,14 @@ def main_p2():
             plt.pause(0.001)
 
             if i == 0:
-                fig.legend()
-                fig2.legend()
-                fig3.legend()
-            # plt.show()
+                fig.legend(loc='lower right', bbox_to_anchor=(0.9, 0.11))
+                fig2.legend(loc='lower right', bbox_to_anchor=(0.9, 0.11))
+                fig3.legend(loc='lower right', bbox_to_anchor=(0.9, 0.11))
+
+    fig.savefig('p2-rewards.png')
+    fig2.savefig('p2-mean-rewards.png')
+    fig3.savefig('p2-win-rates.png')
+
     print('vs. random policy')
     _,_ = test_ep_p2(dqn, 'random', 1, 1e-2, render=True)
     print('vs. max policy')
@@ -617,10 +621,14 @@ def main():
             plt.pause(0.001)
 
             if i == 0:
-                fig.legend()
-                fig2.legend()
-                fig3.legend()
-            # plt.show()
+                fig.legend(loc='lower right', bbox_to_anchor=(0.9, 0.11))
+                fig2.legend(loc='lower right', bbox_to_anchor=(0.9, 0.11))
+                fig3.legend(loc='lower right', bbox_to_anchor=(0.9, 0.11))
+
+    fig.savefig('rewards.png')
+    fig2.savefig('mean-rewards.png')
+    fig3.savefig('win-rates.png')
+
     print('vs. random policy')
     _,_ = test_ep(dqn, 'random', 1, 1e-2, render=True)
     print('vs. max policy')
