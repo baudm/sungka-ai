@@ -248,6 +248,7 @@ def train_ep(net, policy, render=False):
         win = 0
     return ep_reward, win
 
+
 def test_ep(net, policy, num_test, eps=0.05, render=False):
 
     test_reward = []
@@ -275,7 +276,7 @@ def test_ep(net, policy, num_test, eps=0.05, render=False):
                 elif policy == 'exact':
                     action2 = exact_policy(info['next_player'], next_state)
                 elif policy == 'self':
-                    action2 = net.choose_action(2, state, eps)
+                    action2 = net.choose_action(2, next_state, eps)
                 next_state, reward2 , done, info = env.step(action2)
                 if render:
                     print('Player 2 moves', action2)
@@ -326,7 +327,7 @@ def train_ep_p2(net, policy, render=False):
             elif policy == 'exact':
                 action2 = exact_policy(info['next_player'], next_state)
             elif policy == 'self':
-                action2 = net.choose_action(2, state, 0.05)
+                action2 = net.choose_action(2, next_state, 0.05)
             next_state, reward2 , done, info = env.step(action2)
             if render:
                 print('Player 2 moves', action2)
@@ -392,7 +393,7 @@ def test_ep_p2(net, policy, num_test, eps=0.05, render=False):
                 elif policy == 'exact':
                     action2 = exact_policy(info['next_player'], next_state)
                 elif policy == 'self':
-                    action2 = net.choose_action(2, state, eps)
+                    action2 = net.choose_action(2, next_state, eps)
                 next_state, reward2 , done, info = env.step(action2)
                 if render:
                     print('Player 2 moves', action2)
