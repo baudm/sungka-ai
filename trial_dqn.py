@@ -399,12 +399,6 @@ def test_ep_p2(net, policy, num_test, eps=0.05, render=False):
 
 
 def main_p2():
-    # Make training reproducible
-    np.random.seed(0)
-    torch.manual_seed(0)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
-
     dqn = DQN(NUM_STATES, NUM_ACTIONS, EPISILON)
     episodes = NUM_EPISODES
     print("Collecting Experience....")
@@ -460,7 +454,7 @@ def main_p2():
             test_win_exact.append(t_win_exact*100)
 
             # SAVE
-            s = save_path + '-' + str(i).zfill(5)
+            s = save_path + '-p2-' + str(i).zfill(5)
             print("saving model at episode %i in save_path=%s" % (i, s))
             torch.save(dqn, s)
             np.savez(s+'-test_reward_rand', test_reward_rand)
@@ -506,8 +500,8 @@ def main_p2():
                 fig2.legend(loc='lower right', bbox_to_anchor=(0.9, 0.11))
                 fig3.legend(loc='lower right', bbox_to_anchor=(0.9, 0.11))
 
-    fig.savefig('p2-rewards.png')
-    fig2.savefig('p2-mean-rewards.png')
+    fig.savefig('p2-train-rewards.png')
+    fig2.savefig('p2-test-rewards.png')
     fig3.savefig('p2-win-rates.png')
 
     print('vs. random policy')
@@ -517,13 +511,8 @@ def main_p2():
     print('vs. self')
     _,_ = test_ep_p2(dqn, 'self', 1, 1e-2, render=True)
 
-def main():
-    # Make training reproducible
-    np.random.seed(0)
-    torch.manual_seed(0)
-    torch.backends.cudnn.deterministic = True
-    torch.backends.cudnn.benchmark = False
 
+def main():
     dqn = DQN(NUM_STATES, NUM_ACTIONS, EPISILON)
     episodes = NUM_EPISODES
     print("Collecting Experience....")
@@ -579,7 +568,7 @@ def main():
             test_win_exact.append(t_win_exact*100)
 
             # SAVE
-            s = save_path + '-' + str(i).zfill(5)
+            s = save_path + '-p1-' + str(i).zfill(5)
             print("saving model at episode %i in save_path=%s" % (i, s))
             torch.save(dqn, s)
             np.savez(s+'-test_reward_rand', test_reward_rand)
@@ -625,9 +614,9 @@ def main():
                 fig2.legend(loc='lower right', bbox_to_anchor=(0.9, 0.11))
                 fig3.legend(loc='lower right', bbox_to_anchor=(0.9, 0.11))
 
-    fig.savefig('rewards.png')
-    fig2.savefig('mean-rewards.png')
-    fig3.savefig('win-rates.png')
+    fig.savefig('p1-train-rewards.png')
+    fig2.savefig('p1-test-rewards.png')
+    fig3.savefig('p1-win-rates.png')
 
     print('vs. random policy')
     _,_ = test_ep(dqn, 'random', 1, 1e-2, render=True)
@@ -636,8 +625,15 @@ def main():
     print('vs. self')
     _,_ = test_ep(dqn, 'self', 1, 1e-2, render=True)
 
+
 if __name__ == '__main__':
+    # Make training reproducible
+    np.random.seed(0)
+    torch.manual_seed(0)
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+
     main()
     main_p2()
-    while True:
-        a=1
+    # Pause execution
+    input('Press [enter] to exit.')
