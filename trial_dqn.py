@@ -94,7 +94,11 @@ class DQN():
         self.eval_net = self.eval_net.to(self.device)
         self.target_net = self.target_net.to(self.device)
 
-    def choose_action(self, state, epsilon=None):
+    def choose_action(self, player_id, state, epsilon=None):
+        # Swap houses of player 1 and 2
+        if player_id == 2:
+            state = state[list(range(7, 14)) + list(range(0, 7))]
+
         state = torch.as_tensor(state, dtype=torch.float, device=self.device)
         if epsilon is None:
             epsilon = self.epsilon
@@ -106,6 +110,11 @@ class DQN():
         else:
             # Explore
             action = np.random.randint(0, self.num_actions)
+
+        # Shift action to Player 2's action space
+        if player_id == 2:
+            action += 7
+
         return action if ENV_A_SHAPE == 0 else action.reshape(ENV_A_SHAPE)
 
     def store_transition(self, state, action, reward, next_state):
@@ -197,7 +206,7 @@ def train_ep(net, policy, render=False):
         env.render()
     while True:
         # env.render()
-        action = net.choose_action(state)
+        action = net.choose_action(1, state)
         next_state, reward , done, info = env.step(action)
         if render:
             print('Player 1 moves', action)
@@ -213,9 +222,7 @@ def train_ep(net, policy, render=False):
             elif policy == 'exact':
                 action2 = exact_policy(info['next_player'], next_state)
             elif policy == 'self':
-                mirror_state = state[7:14]
-                mirror_state = np.append(mirror_state, state[0:7])
-                action2 = net.choose_action(mirror_state, 0.05) + 7
+                action2 = net.choose_action(2, next_state, 0.05)
             next_state, reward2 , done, info = env.step(action2)
             if render:
                 print('Player 2 moves', action2)
@@ -253,7 +260,7 @@ def test_ep(net, policy, num_test, eps=0.05, render=False):
             env.render()
         while True:
             # env.render()
-            action = net.choose_action(state, eps)
+            action = net.choose_action(1, state, eps)
             next_state, reward , done, info = env.step(action)
             if render:
                 print('Player 1 moves', action)
@@ -268,9 +275,7 @@ def test_ep(net, policy, num_test, eps=0.05, render=False):
                 elif policy == 'exact':
                     action2 = exact_policy(info['next_player'], next_state)
                 elif policy == 'self':
-                    mirror_state = state[7:14]
-                    mirror_state = np.append(mirror_state, state[0:7])
-                    action2 = net.choose_action(mirror_state, eps) + 7
+                    action2 = net.choose_action(2, state, eps)
                 next_state, reward2 , done, info = env.step(action2)
                 if render:
                     print('Player 2 moves', action2)
@@ -300,7 +305,7 @@ def train_ep_p2(net, policy, render=False):
     while True:
         # env.render()
         if ctr > 0: # skip player1's first turn so that he goes second
-            action = net.choose_action(state)
+            action = net.choose_action(1, state)
             next_state, reward , done, info = env.step(action)
             if render:
                 print('Player 1 moves', action)
@@ -321,9 +326,7 @@ def train_ep_p2(net, policy, render=False):
             elif policy == 'exact':
                 action2 = exact_policy(info['next_player'], next_state)
             elif policy == 'self':
-                mirror_state = state[7:14]
-                mirror_state = np.append(mirror_state, state[0:7])
-                action2 = net.choose_action(mirror_state, 0.05) + 7
+                action2 = net.choose_action(2, state, 0.05)
             next_state, reward2 , done, info = env.step(action2)
             if render:
                 print('Player 2 moves', action2)
@@ -368,7 +371,7 @@ def test_ep_p2(net, policy, num_test, eps=0.05, render=False):
         while True:
             # env.render()
             if ctr > 0: # skip player1's first turn so that he goes second
-                action = net.choose_action(state, eps)
+                action = net.choose_action(1, state, eps)
                 next_state, reward , done, info = env.step(action)
                 if render:
                     print('Player 1 moves', action)
@@ -389,9 +392,7 @@ def test_ep_p2(net, policy, num_test, eps=0.05, render=False):
                 elif policy == 'exact':
                     action2 = exact_policy(info['next_player'], next_state)
                 elif policy == 'self':
-                    mirror_state = state[7:14]
-                    mirror_state = np.append(mirror_state, state[0:7])
-                    action2 = net.choose_action(mirror_state, eps) + 7
+                    action2 = net.choose_action(2, state, eps)
                 next_state, reward2 , done, info = env.step(action2)
                 if render:
                     print('Player 2 moves', action2)
