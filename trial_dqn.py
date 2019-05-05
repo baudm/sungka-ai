@@ -191,11 +191,22 @@ def exact_policy(player, board):
         else:
             action = np.argmax(board[0:7])
 
-
     if player == 1:
         return action
     elif player == 2:
         return action + 7
+
+
+def choose_action(policy, player_id, state, net, eps=None):
+    if policy == 'random':
+        action = random_policy(player_id)
+    elif policy == 'max':
+        action = max_policy(player_id, state)
+    elif policy == 'exact':
+        action = exact_policy(player_id, state)
+    elif policy == 'self':
+        action = net.choose_action(player_id, state, eps)
+    return action
 
 
 def train_ep(net, policy, render=False):
@@ -206,7 +217,7 @@ def train_ep(net, policy, render=False):
         env.render()
     while True:
         # env.render()
-        action = net.choose_action(1, state)
+        action = choose_action('self', 1, state, net)
         next_state, reward , done, info = env.step(action)
         if render:
             print('Player 1 moves', action)
@@ -215,14 +226,7 @@ def train_ep(net, policy, render=False):
         # Let player 2 play
         p2_reward = 0
         while info['next_player'] == 2 and not done:
-            if policy == 'random':
-                action2 = random_policy(info['next_player'])
-            elif policy == 'max':
-                action2 = max_policy(info['next_player'], next_state)
-            elif policy == 'exact':
-                action2 = exact_policy(info['next_player'], next_state)
-            elif policy == 'self':
-                action2 = net.choose_action(2, next_state, 0.05)
+            action2 = choose_action(policy, 2, next_state, net, 0.05)
             next_state, reward2 , done, info = env.step(action2)
             if render:
                 print('Player 2 moves', action2)
@@ -261,7 +265,7 @@ def test_ep(net, policy, num_test, eps=0.05, render=False):
             env.render()
         while True:
             # env.render()
-            action = net.choose_action(1, state, eps)
+            action = choose_action('self', 1, state, net, eps)
             next_state, reward , done, info = env.step(action)
             if render:
                 print('Player 1 moves', action)
@@ -269,14 +273,7 @@ def test_ep(net, policy, num_test, eps=0.05, render=False):
 
             p2_reward = 0
             while info['next_player'] == 2 and not done:
-                if policy == 'random':
-                    action2 = random_policy(info['next_player'])
-                elif policy == 'max':
-                    action2 = max_policy(info['next_player'], next_state)
-                elif policy == 'exact':
-                    action2 = exact_policy(info['next_player'], next_state)
-                elif policy == 'self':
-                    action2 = net.choose_action(2, next_state, eps)
+                action2 = choose_action(policy, 2, next_state, net, eps)
                 next_state, reward2 , done, info = env.step(action2)
                 if render:
                     print('Player 2 moves', action2)
@@ -306,7 +303,7 @@ def train_ep_p2(net, policy, render=False):
     while True:
         # env.render()
         if ctr > 0: # skip player1's first turn so that he goes second
-            action = net.choose_action(1, state)
+            action = choose_action('self', 1, state, net)
             next_state, reward , done, info = env.step(action)
             if render:
                 print('Player 1 moves', action)
@@ -320,14 +317,7 @@ def train_ep_p2(net, policy, render=False):
         # Let player 2 play
         p2_reward = 0
         while info['next_player'] == 2 and not done:
-            if policy == 'random':
-                action2 = random_policy(info['next_player'])
-            elif policy == 'max':
-                action2 = max_policy(info['next_player'], next_state)
-            elif policy == 'exact':
-                action2 = exact_policy(info['next_player'], next_state)
-            elif policy == 'self':
-                action2 = net.choose_action(2, next_state, 0.05)
+            action2 = choose_action(policy, 2, next_state, net, 0.05)
             next_state, reward2 , done, info = env.step(action2)
             if render:
                 print('Player 2 moves', action2)
@@ -372,7 +362,7 @@ def test_ep_p2(net, policy, num_test, eps=0.05, render=False):
         while True:
             # env.render()
             if ctr > 0: # skip player1's first turn so that he goes second
-                action = net.choose_action(1, state, eps)
+                action = choose_action('self', 1, state, net, eps)
                 next_state, reward , done, info = env.step(action)
                 if render:
                     print('Player 1 moves', action)
@@ -386,14 +376,7 @@ def test_ep_p2(net, policy, num_test, eps=0.05, render=False):
 
             p2_reward = 0
             while info['next_player'] == 2 and not done:
-                if policy == 'random':
-                    action2 = random_policy(info['next_player'])
-                elif policy == 'max':
-                    action2 = max_policy(info['next_player'], next_state)
-                elif policy == 'exact':
-                    action2 = exact_policy(info['next_player'], next_state)
-                elif policy == 'self':
-                    action2 = net.choose_action(2, next_state, eps)
+                action2 = choose_action(policy, 2, next_state, net, eps)
                 next_state, reward2 , done, info = env.step(action2)
                 if render:
                     print('Player 2 moves', action2)
