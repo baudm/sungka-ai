@@ -13,7 +13,7 @@ GAMMA = 0.9
 EPISILON = 0.9
 MEMORY_CAPACITY = 2000
 Q_NETWORK_ITERATION = 100
-NUM_EPISODES = 1000
+NUM_EPISODES = 10000
 NUM_TEST = 100
 OPP_POLICY = 'random'
 
@@ -217,7 +217,7 @@ def train_ep(net, policy, render=False):
         env.render()
     while True:
         # env.render()
-        action = choose_action('self', 1, state, net)
+        action = choose_action('self', 1, state, net, 0.05)
         next_state, reward , done, info = env.step(action)
         if render:
             print('Player 1 moves', action)
@@ -234,7 +234,7 @@ def train_ep(net, policy, render=False):
             p2_reward+=reward2
 
 
-        net.store_transition(state, action, reward-p2_reward, next_state)
+        net.store_transition(state, action, reward - p2_reward, next_state)
         ep_reward += reward
 
         if net.memory_counter >= MEMORY_CAPACITY:
@@ -303,7 +303,7 @@ def train_ep_p2(net, policy, render=False):
     while True:
         # env.render()
         if ctr > 0: # skip player1's first turn so that he goes second
-            action = choose_action('self', 1, state, net)
+            action = choose_action('self', 1, state, net, 0.05)
             next_state, reward , done, info = env.step(action)
             if render:
                 print('Player 1 moves', action)
@@ -329,7 +329,7 @@ def train_ep_p2(net, policy, render=False):
             continue
 
 
-        net.store_transition(state, action, reward-p2_reward, next_state)
+        net.store_transition(state, action, reward - p2_reward, next_state)
         ep_reward += reward
 
         if net.memory_counter >= MEMORY_CAPACITY:
