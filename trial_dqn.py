@@ -470,24 +470,23 @@ def main_p2():
 
 
             # PLOT
-            fig.suptitle('[Train] Reward over Number of Episodes')
-            ax.set_xlabel('Episodes')
-            ax.set_ylabel('Reward')
-            ax.plot(reward_list, 'g-', label='total_loss')
-            ax.plot(reward_list_mean, 'r-', label='ema_loss')
+            fig.suptitle('[Train] Score over Number of Episodes')
+            ax.set_xlabel('Number of Training Episodes')
+            ax.set_ylabel('Score')
+            ax.plot(reward_list, 'g-', label='current')
+            ax.plot(reward_list_mean, 'r-', label='ema')
             # ax.plot(np.array(win_list_mean)*100, 'b-', label='win_rate')
 
-            fig2.suptitle('[Test] Reward over Number of Episodes')
-            ax2.set_xlabel('Episodes')
-            ax2.set_ylabel('Reward')
+            fig2.suptitle('[Test] Score over Number of Episodes')
+            ax2.set_xlabel('Number of Training Episodes (Hundreds)')
+            ax2.set_ylabel('Mean Score')
             ax2.plot(test_reward_rand, 'r-', label='vs random policy')
             ax2.plot(test_reward_max, 'g-', label='vs max policy')
             ax2.plot(test_reward_self, 'b-', label='vs self policy')
             ax2.plot(test_reward_exact, 'y-', label='vs exact policy')
 
-
             fig3.suptitle('[Test] Win rate of agent')
-            ax3.set_xlabel('Episodes')
+            ax3.set_xlabel('Number of Training Episodes (Hundreds)')
             ax3.set_ylabel('Win rate (%)')
             ax3.plot(test_win_rand, 'r-', label='vs random policy')
             ax3.plot(test_win_max, 'g-', label='vs max policy')
@@ -584,24 +583,23 @@ def main():
 
 
             # PLOT
-            fig.suptitle('[Train] Reward over Number of Episodes')
-            ax.set_xlabel('Episodes')
-            ax.set_ylabel('Reward')
-            ax.plot(reward_list, 'g-', label='total_loss')
-            ax.plot(reward_list_mean, 'r-', label='ema_loss')
+            fig.suptitle('[Train] Score over Number of Episodes')
+            ax.set_xlabel('Number of Training Episodes')
+            ax.set_ylabel('Score')
+            ax.plot(reward_list, 'g-', label='current')
+            ax.plot(reward_list_mean, 'r-', label='ema')
             # ax.plot(np.array(win_list_mean)*100, 'b-', label='win_rate')
 
-            fig2.suptitle('[Test] Reward over Number of Episodes')
-            ax2.set_xlabel('Episodes')
-            ax2.set_ylabel('Reward')
+            fig2.suptitle('[Test] Score over Number of Episodes')
+            ax2.set_xlabel('Number of Training Episodes (Hundreds)')
+            ax2.set_ylabel('Mean Score')
             ax2.plot(test_reward_rand, 'r-', label='vs random policy')
             ax2.plot(test_reward_max, 'g-', label='vs max policy')
             ax2.plot(test_reward_self, 'b-', label='vs self policy')
             ax2.plot(test_reward_exact, 'y-', label='vs exact policy')
 
-
             fig3.suptitle('[Test] Win rate of agent')
-            ax3.set_xlabel('Episodes')
+            ax3.set_xlabel('Number of Training Episodes (Hundreds)')
             ax3.set_ylabel('Win rate (%)')
             ax3.plot(test_win_rand, 'r-', label='vs random policy')
             ax3.plot(test_win_max, 'g-', label='vs max policy')
