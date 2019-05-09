@@ -1,3 +1,5 @@
+import os
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -18,7 +20,7 @@ NUM_TEST = 100
 OPP_POLICY = 'random'
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--save_path', help='model save location')
+parser.add_argument('--save_path', required=True, help='model save location')
 parser.add_argument('--batch_size', default=BATCH_SIZE, type=int, help='batch size; default=%i' % BATCH_SIZE)
 parser.add_argument('--lr', default=LR, type=float, help='learning rate; default=%i' % LR)
 parser.add_argument('--gamma', default=GAMMA, type=float, help='gamma/discount factor; default=%i' % GAMMA)
@@ -454,9 +456,9 @@ def main_p2():
             test_win_exact.append(t_win_exact*100)
 
             # SAVE
-            s = save_path + '-p2-' + str(i).zfill(5)
+            s = os.path.join(save_path, 'p2-' + str(i).zfill(5))
             print("saving model at episode %i in save_path=%s" % (i, s))
-            torch.save(dqn, s)
+            torch.save(dqn, s + '.pth')
             np.savez(s+'-test_reward_rand', test_reward_rand)
             np.savez(s+'-test_win_rand', test_win_rand)
             np.savez(s+'-test_reward_max', test_reward_max)
@@ -499,9 +501,9 @@ def main_p2():
                 fig2.legend(loc='lower right', bbox_to_anchor=(0.9, 0.11))
                 fig3.legend(loc='lower right', bbox_to_anchor=(0.9, 0.11))
 
-    fig.savefig('p2-train-rewards.png')
-    fig2.savefig('p2-test-rewards.png')
-    fig3.savefig('p2-win-rates.png')
+    fig.savefig(os.path.join(save_path, 'p2-train-rewards.png'))
+    fig2.savefig(os.path.join(save_path, 'p2-test-rewards.png'))
+    fig3.savefig(os.path.join(save_path, 'p2-win-rates.png'))
 
     print('vs. random policy')
     _,_ = test_ep_p2(dqn, 'random', 1, 1e-2, render=True)
@@ -567,9 +569,9 @@ def main():
             test_win_exact.append(t_win_exact*100)
 
             # SAVE
-            s = save_path + '-p1-' + str(i).zfill(5)
+            s = os.path.join(save_path, 'p1-' + str(i).zfill(5))
             print("saving model at episode %i in save_path=%s" % (i, s))
-            torch.save(dqn, s)
+            torch.save(dqn, s + '.pth')
             np.savez(s+'-test_reward_rand', test_reward_rand)
             np.savez(s+'-test_win_rand', test_win_rand)
             np.savez(s+'-test_reward_max', test_reward_max)
@@ -612,9 +614,9 @@ def main():
                 fig2.legend(loc='lower right', bbox_to_anchor=(0.9, 0.11))
                 fig3.legend(loc='lower right', bbox_to_anchor=(0.9, 0.11))
 
-    fig.savefig('p1-train-rewards.png')
-    fig2.savefig('p1-test-rewards.png')
-    fig3.savefig('p1-win-rates.png')
+    fig.savefig(os.path.join(save_path, 'p1-train-rewards.png'))
+    fig2.savefig(os.path.join(save_path, 'p1-test-rewards.png'))
+    fig3.savefig(os.path.join(save_path, 'p1-win-rates.png'))
 
     print('vs. random policy')
     _,_ = test_ep(dqn, 'random', 1, 1e-2, render=True)

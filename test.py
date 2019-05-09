@@ -30,7 +30,7 @@ ENV_A_SHAPE = 0 if isinstance(env.action_space.sample(), int) else env.action_sp
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--load_path', help='model location')
+parser.add_argument('--load_path', required=True, help='model location')
 # parser.add_argument('--batch_size', default=BATCH_SIZE, type=int, help='batch size; default=%i' % BATCH_SIZE)
 # parser.add_argument('--lr', default=LR, type=float, help='learning rate; default=%i' % LR)
 parser.add_argument('--gamma', default=GAMMA, type=float, help='gamma/discount factor; default=%i' % GAMMA)
