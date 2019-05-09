@@ -369,7 +369,7 @@ def test_ep_pvp(net, net2, num_test, eps=0.05, render=False):
     return np.mean(test_reward), np.mean(test_reward_p2), test_win/num_test, draw/num_test
 
 
-def test_and_load():
+def load_and_play():
     net = torch.load(load_path)
     if player == 1:
         r, w = test_ep(net, OPP_POLICY, NUM_TEST, EPISILON, render=render)
@@ -381,7 +381,7 @@ def test_and_load():
     print('win rate:', w)
 
 
-def test_and_test():
+def load_and_test():
     netp1 = torch.load(load_path)
     load_path2 = list(load_path)
     print(load_path)
@@ -414,5 +414,5 @@ if __name__ == '__main__':
     torch.manual_seed(0)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
-    # test_and_load()
-    test_and_test()
+    # load_and_play()
+    load_and_test()
