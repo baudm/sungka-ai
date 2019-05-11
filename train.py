@@ -7,14 +7,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy
 
-import SungkaEnv
+import environment
 import options
 
 from model import DQN
 from policy import choose_action
 
 
-env = SungkaEnv.SungkaEnv()
+env = environment.SungkaEnv()
 NUM_ACTIONS = env.action_space.n // 2
 NUM_STATES = np.prod(env.observation_space.shape)
 ENV_A_SHAPE = 0 if isinstance(env.action_space.sample(), int) else env.action_space.sample.shape

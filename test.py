@@ -7,10 +7,10 @@ import options
 from model import DQN
 from policy import choose_action
 
-import SungkaEnv
+import environment
 from train import test_ep, test_ep_p2
 
-env = SungkaEnv.SungkaEnv()
+env = environment.SungkaEnv()
 NUM_ACTIONS = env.action_space.n // 2
 NUM_STATES = np.prod(env.observation_space.shape)
 
