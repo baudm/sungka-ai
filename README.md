@@ -1,2 +1,49 @@
-# cs295-sungka
-Sungka - RL
+# Mastering the Game of Sungka from Random Play
+CS 295 Project for AY 2018-2019 by Darwin Bautista and Raimarc Dionido
+
+## Code Structure
+1. `environment.py` - Sungka environment implementation in OpenAI's Gym
+2. `model.py` - PyTorch model (and derived policy) and DQN-based trainer
+3. `policy.py` - handcrafted policies
+4. `train.py` - training loop. Running with default parameters would recreate the results shown in the paper.
+5. `test.py` - test code for evaluating or playing against (i.e. opponent == 'human') the trained DQN agent.
+6. `options.py` - common options and hyperparameters
+
+## Training
+To get the exact results shown in the paper, train the model using the default parameters:
+```
+$ python train.py --save_path results/
+```
+Every 100 training episodes, model weights will be saved in `results`. The final model weight should be in `results/p1-09999.pth`.
+
+Training hyperparameters are as follows:
+```
+ --batch_size BATCH_SIZE
+                        batch size; default=128
+  --lr LR               learning rate; default=1e-5
+  --gamma GAMMA         gamma/discount factor; default=0.9
+  --mem_cap MEM_CAP     memory capacity; default=2000
+  --num_episodes NUM_EPISODES
+                        number of episodes; default=10000
+  --num_test NUM_TEST   number of test episodes; default=100
+  --opp_policy OPP_POLICY
+                        opponent policy during training; default=random
+  --q_net_iter Q_NET_ITER
+                        number of iterations before updating target
+```
+
+## Testing
+To play with the trained agent:
+```
+$ python test.py --load_path results/p1-09999.pth --opp_policy human --render
+```
+
+Testing options are:
+```
+  --num_test NUM_TEST   number of test episodes; default=100
+  --opp_policy OPP_POLICY
+                        opponent policy during training; default=random
+  --player PLAYER       player turn
+  --render              render
+  --pvp PVP             P1 weights vs P2 weights
+```
