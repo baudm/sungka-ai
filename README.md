@@ -33,9 +33,9 @@ Training hyperparameters are as follows:
 ```
 
 ## Testing
-To play with the trained agent:
+To play with the pretrained agent:
 ```
-$ python test.py --load_path results/p1-09999.pth --opp_policy human --render
+$ python test.py --load_path pretrained-weights.pth --opp_policy human --render
 ```
 
 Testing options are:
