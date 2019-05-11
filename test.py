@@ -117,7 +117,10 @@ if __name__ == '__main__':
     parser.add_argument('--load_path', required=True, help='model location')
     parser.add_argument('--player', default=1, type=int, help='player turn')
     parser.add_argument('--render', default=False, action='store_true', help='render')
+    parser.add_argument('--pvp', default=False, type=bool, help='P1 weights vs P2 weights')
     opt = parser.parse_args()
 
-    load_and_play(opt)
-    load_and_test(opt)
+    if opt.pvp:
+        load_and_test(opt)
+    else:
+        load_and_play(opt)
