@@ -81,7 +81,7 @@ def load_and_test(opt):
     netp1.load(opt.load_path)
     load_path2 = list(opt.load_path)
     print(opt.load_path)
-    load_path2[-7] = '2'
+    load_path2[-11] = '2'
     load_path2 = "".join(load_path2)
     print(load_path2)
     netp2 = DQN(NUM_STATES, NUM_ACTIONS, opt.eps, opt)
