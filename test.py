@@ -72,8 +72,8 @@ def load_and_play(opt):
     elif opt.player == 2:
         r, w = test_ep_p2(net, opt.opp_policy, opt.num_test, opt.eps, render=opt.render)
 
-    print('average reward:', r)
-    print('win rate:', w)
+    print('average reward: {:.3f}'.format(r))
+    print('win rate: {:.1f}%'.format(100 * w))
 
 
 def load_and_test(opt):
@@ -117,7 +117,7 @@ if __name__ == '__main__':
     parser.add_argument('--load_path', required=True, help='model location')
     parser.add_argument('--player', default=1, type=int, help='player turn')
     parser.add_argument('--render', default=False, action='store_true', help='render')
-    parser.add_argument('--pvp', default=False, type=bool, help='P1 weights vs P2 weights')
+    parser.add_argument('--pvp', default=False, action='store_true', help='P1 weights vs P2 weights')
     opt = parser.parse_args()
 
     if opt.pvp:
