@@ -14,7 +14,15 @@ To get the exact results shown in the paper, train the model using the default p
 ```
 $ python train.py --save_path results/
 ```
-Every 100 training episodes, model weights will be saved in `results`. The final model weight should be in `results/p1-09999.pth`, and `results/p2-09999.pth` for the agent trained as player 2.
+Every 100 training episodes, model weights will be saved in `results`. The final model weight would be in `results/p1-09999.pth`, and `results/p2-09999.pth` for the agent trained as player 2. The score and win rate plots would be saved as:
+```
+results/p1-test-rewards.png  (Figure 3 in the paper)
+results/p1-train-rewards.png
+results/p1-win-rates.png     (Figure 5 in the paper)
+results/p2-test-rewards.png
+results/p2-train-rewards.png
+results/p2-win-rates.png
+```
 
 Training hyperparameters are as follows:
 ```
@@ -46,4 +54,10 @@ Testing options are:
   --player PLAYER       player turn; default=1
   --render              render; default=False
   --pvp                 P1 weights vs P2 weights; default=False
+```
+
+## Benchmark
+The complete benchmark code is provided for recreating the data in Tables I, II, and III:
+```
+$ ./benchmark.sh
 ```
