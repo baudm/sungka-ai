@@ -2,12 +2,12 @@
 CS 295 Project for AY 2018-2019 by Darwin Bautista and Raimarc Dionido
 
 ## Code Structure
-1. `environment.py` - Sungka environment implementation in OpenAI's Gym
-2. `model.py` - PyTorch model (and derived policy) and DQN-based trainer
-3. `policy.py` - handcrafted policies
-4. `train.py` - training loop. Running with default parameters would recreate the results shown in the paper.
-5. `test.py` - test code for evaluating or playing against (i.e. opponent == 'human') the trained DQN agent.
-6. `options.py` - common options and hyperparameters
+- `environment.py` - Sungka environment implementation in OpenAI's Gym
+- `model.py` - PyTorch model (and derived policy) and DQN-based trainer
+- `policy.py` - handcrafted policies
+- `train.py` - training loop. Running with default parameters would recreate the results shown in the paper.
+- `test.py` - test code for evaluating or playing against (i.e. opponent == 'human') the trained DQN agent.
+- `options.py` - common options and hyperparameters
 
 ## Training
 To get the exact results shown in the paper, train the model using the default parameters:
