@@ -14,7 +14,7 @@ To get the exact results shown in the paper, train the model using the default p
 ```
 $ python train.py --save_path results/
 ```
-Every 100 training episodes, model weights will be saved in `results`. The final model weight should be in `results/p1-09999.pth`.
+Every 100 training episodes, model weights will be saved in `results`. The final model weight should be in `results/p1-09999.pth`, and `results/p2-09999.pth` for the agent trained as player 2.
 
 Training hyperparameters are as follows:
 ```
@@ -29,13 +29,13 @@ Training hyperparameters are as follows:
   --opp_policy OPP_POLICY
                         opponent policy during training; default=random
   --q_net_iter Q_NET_ITER
-                        number of iterations before updating target
+                        number of iterations before updating target; default=100
 ```
 
 ## Testing
 To play with the pretrained agent:
 ```
-$ python test.py --load_path pretrained-weights.pth --opp_policy human --render
+$ python test.py --load_path pretrained/p1-09999.pth --opp_policy human --render
 ```
 
 Testing options are:
@@ -43,7 +43,7 @@ Testing options are:
   --num_test NUM_TEST   number of test episodes; default=100
   --opp_policy OPP_POLICY
                         opponent policy during training; default=random
-  --player PLAYER       player turn
-  --render              render
-  --pvp PVP             P1 weights vs P2 weights
+  --player PLAYER       player turn; default=1
+  --render              render; default=False
+  --pvp                 P1 weights vs P2 weights; default=False
 ```
