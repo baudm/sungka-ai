@@ -1,13 +1,16 @@
 # Mastering the Game of Sungka from Random Play
 CS 295 Project for AY 2018-2019 by Darwin Bautista and Raimarc Dionido
 
-## Code Structure
+## Project Structure
+- `Documentation` - LaTeX source and its rendered output (paper.pdf)
+- `pretrained` - pretrained model weights
 - `environment.py` - Sungka environment implementation in OpenAI's Gym
 - `model.py` - PyTorch model (and derived policy) and DQN-based trainer
 - `policy.py` - handcrafted policies
 - `train.py` - training loop. Running with default parameters would recreate the results shown in the paper.
 - `test.py` - test code for evaluating or playing against (i.e. opponent == 'human') the trained DQN agent.
 - `options.py` - common options and hyperparameters
+- `benchmark.sh` - benchmark code for generating the data in the paper
 
 ## Training
 To get the exact results shown in the paper, train the model using the default parameters:
