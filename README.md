@@ -1,8 +1,11 @@
 # Mastering the Game of Sungka from Random Play
 CS 295 Project for AY 2018-2019 by Darwin Bautista and Raimarc Dionido
 
+## Documentation
+- [Presentation (Google Slides)](https://docs.google.com/presentation/d/15X-8WuYXHrWDY5mBAGMbnyCu940bcJR-0w0ICrIWqqo/edit?usp=sharing)
+- [Paper (LaTeX)](https://www.overleaf.com/read/stsfjcvcjcqr)
+
 ## Project Structure
-- `Documentation` - LaTeX source and its rendered output (paper.pdf)
 - `pretrained` - pretrained model weights
 - `environment.py` - Sungka environment implementation in OpenAI's Gym
 - `model.py` - PyTorch model (and derived policy) and DQN-based trainer
